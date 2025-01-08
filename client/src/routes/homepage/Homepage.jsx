@@ -11,7 +11,7 @@ const Homepage = () => {
     <div className="homepage">
       <img src="/orbital.png" alt="" className="orbital" />
       <div className="left">
-        <h1>LAMA AI</h1>
+        <h1>TECH RESUME CRAFTER</h1>
         <h2>Supercharge your creativity and productivity</h2>
         <h3>
             Hey Marketers this is your one stop solution for Generating ATS friendly Resumes.

@@ -18,15 +18,18 @@ const NewPrompt = ({ data }) => {
 
   const chat = model.startChat({
     history: [
-      data?.history.map(({ role, parts }) => ({
-        role,
-        parts: [{ text: parts[0].text }],
-      })),
+      {
+        role: 'user', // Ensure the role is 'user'
+        parts: [{ text: data?.history?.[0]?.parts?.[0]?.text || "Default message" }],
+      },
     ],
     generationConfig: {
       // maxOutputTokens: 100,
     },
   });
+  
+  
+  
 
   const endRef = useRef(null);
   const formRef = useRef(null);
@@ -74,7 +77,7 @@ const NewPrompt = ({ data }) => {
 
   const add = async (text, isInitial) => {
     if (!isInitial) setQuestion(text);
-
+  
     try {
       const result = await chat.sendMessageStream(
         Object.entries(img.aiData).length ? [img.aiData, text] : [text]
@@ -86,12 +89,13 @@ const NewPrompt = ({ data }) => {
         accumulatedText += chunkText;
         setAnswer(accumulatedText);
       }
-
+  
       mutation.mutate();
     } catch (err) {
       console.log(err);
     }
   };
+  
 
   const handleSubmit = async (e) => {
     e.preventDefault();

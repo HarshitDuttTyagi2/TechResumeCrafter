@@ -7,12 +7,16 @@ import mongoose from "mongoose";
 import Chat from "./models/chat.js";
 import UserChats from "./models/userChats.js";
 import { ClerkExpressRequireAuth } from "@clerk/clerk-sdk-node";
+import dotenv from "dotenv";
+dotenv.config();
+
 
 const port = process.env.PORT || 3000;
 const app = express();
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+console.log(process.env.CLIENT_URL); // Should log http://localhost:5173
 
 app.use(
   cors({
@@ -32,16 +36,16 @@ const connect = async () => {
   }
 };
 
-const imagekit = new ImageKit({
-  urlEndpoint: process.env.IMAGE_KIT_ENDPOINT,
-  publicKey: process.env.IMAGE_KIT_PUBLIC_KEY,
-  privateKey: process.env.IMAGE_KIT_PRIVATE_KEY,
-});
+// const imagekit = new ImageKit({
+//   urlEndpoint: process.env.IMAGE_KIT_ENDPOINT,
+//   publicKey: process.env.IMAGE_KIT_PUBLIC_KEY,
+//   privateKey: process.env.IMAGE_KIT_PRIVATE_KEY,
+// });
 
-app.get("/api/upload", (req, res) => {
-  const result = imagekit.getAuthenticationParameters();
-  res.send(result);
-});
+// app.get("/api/upload", (req, res) => {
+//   const result = imagekit.getAuthenticationParameters();
+//   res.send(result);
+// });
 
 app.post("/api/chats", ClerkExpressRequireAuth(), async (req, res) => {
   const userId = req.auth.userId;
@@ -100,12 +104,19 @@ app.get("/api/userchats", ClerkExpressRequireAuth(), async (req, res) => {
   try {
     const userChats = await UserChats.find({ userId });
 
+    // Check if the userChats array is empty
+    if (userChats.length === 0) {
+      return res.status(404).send("No user chats found!");
+    }
+
+    // If there are userChats, send the chats
     res.status(200).send(userChats[0].chats);
   } catch (err) {
     console.log(err);
     res.status(500).send("Error fetching userchats!");
   }
 });
+
 
 app.get("/api/chats/:id", ClerkExpressRequireAuth(), async (req, res) => {
   const userId = req.auth.userId;

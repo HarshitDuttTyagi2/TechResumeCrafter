@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import "./chatList.css";
 import { useQuery } from "@tanstack/react-query";
+console.log("API URL:", import.meta.env.VITE_API_URL);
 
 const ChatList = () => {
   const { isPending, error, data } = useQuery({
