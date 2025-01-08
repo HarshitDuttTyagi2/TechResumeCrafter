@@ -7,6 +7,7 @@ import mongoose from "mongoose";
 import Chat from "./models/chat.js";
 import UserChats from "./models/userChats.js";
 import { ClerkExpressRequireAuth } from "@clerk/clerk-sdk-node";
+import aiRoutes from "./routes/ai_routes.js";
 import dotenv from "dotenv";
 dotenv.config();
 
@@ -160,6 +161,9 @@ app.put("/api/chats/:id", ClerkExpressRequireAuth(), async (req, res) => {
     res.status(500).send("Error adding conversation!");
   }
 });
+
+app.use('/ai',aiRoutes);
+
 
 app.use((err, req, res, next) => {
   console.error(err.stack);
