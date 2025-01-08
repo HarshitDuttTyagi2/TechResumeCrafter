@@ -16,7 +16,7 @@ const ChatList = () => {
     <div className="chatList">
       <span className="title">DASHBOARD</span>
       <Link to="/dashboard">Create a new Chat</Link>
-      <Link to="/">Explore Lama AI</Link>
+      <Link to="/">Explore Crafter</Link>
       <Link to="/">Contact</Link>
       <hr />
       <span className="title">RECENT CHATS</span>
@@ -35,8 +35,8 @@ const ChatList = () => {
       <div className="upgrade">
         <img src="/logo.png" alt="" />
         <div className="texts">
-          <span>Upgrade to Lama AI Pro</span>
-          <span>Get unlimited access to all features</span>
+          <span>Enjoy the superpowers of Crafter.</span>
+          <span>Complete the work swiftly.</span>
         </div>
       </div>
     </div>
