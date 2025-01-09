@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from "react";
 import "./newPrompt.css";
 import Upload from "../upload/Upload";
 import { IKImage } from "imagekitio-react";
-import model from "../../lib/gemini";
 import Markdown from "react-markdown";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
@@ -15,21 +14,6 @@ const NewPrompt = ({ data }) => {
     dbData: {},
     aiData: {},
   });
-
-  const chat = model.startChat({
-    history: [
-      {
-        role: 'user', // Ensure the role is 'user'
-        parts: [{ text: data?.history?.[0]?.parts?.[0]?.text || "Default message" }],
-      },
-    ],
-    generationConfig: {
-      // maxOutputTokens: 100,
-    },
-  });
-  
-  
-  
 
   const endRef = useRef(null);
   const formRef = useRef(null);
@@ -77,25 +61,43 @@ const NewPrompt = ({ data }) => {
 
   const add = async (text, isInitial) => {
     if (!isInitial) setQuestion(text);
-  
+
     try {
-      const result = await chat.sendMessageStream(
-        Object.entries(img.aiData).length ? [img.aiData, text] : [text]
-      );
-      let accumulatedText = "";
-      for await (const chunk of result.stream) {
-        const chunkText = chunk.text();
-        console.log(chunkText);
-        accumulatedText += chunkText;
-        setAnswer(accumulatedText);
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/ai/openai`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          userMessage: text,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch response from OpenAI");
       }
-  
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder("utf-8");
+      let accumulatedText = "";
+
+      let done = false;
+      while (!done) {
+        const { done: isDone, value } = await reader.read();
+        done = isDone; // Update the loop condition
+        if (value) {
+          const chunk = decoder.decode(value, { stream: true });
+          accumulatedText += chunk;
+          setAnswer(accumulatedText);
+        }
+      }
+      
+
       mutation.mutate();
     } catch (err) {
       console.log(err);
     }
   };
-  
 
   const handleSubmit = async (e) => {
     e.preventDefault();

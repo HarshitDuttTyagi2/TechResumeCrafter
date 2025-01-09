@@ -36,7 +36,7 @@ const ChatList = () => {
         <img src="/logo.png" alt="" />
         <div className="texts">
           <span>Enjoy the superpowers of Crafter.</span>
-          <span>Complete the work swiftly.</span>
+          <span>Complete the work swifty.</span>
         </div>
       </div>
     </div>
