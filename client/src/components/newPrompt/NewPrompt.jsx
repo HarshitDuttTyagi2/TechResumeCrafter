@@ -6,8 +6,7 @@ import Markdown from "react-markdown";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 const NewPrompt = ({ data }) => {
-  const [question, setQuestion] = useState("");
-  const [answer, setAnswer] = useState("");
+  const [messages, setMessages] = useState([]);
   const [img, setImg] = useState({
     isLoading: false,
     error: "",
@@ -20,7 +19,7 @@ const NewPrompt = ({ data }) => {
 
   useEffect(() => {
     endRef.current.scrollIntoView({ behavior: "smooth" });
-  }, [data, question, answer, img.dbData]);
+  }, [data, messages, img.dbData]);
 
   const queryClient = useQueryClient();
 
@@ -33,8 +32,7 @@ const NewPrompt = ({ data }) => {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          question: question.length ? question : undefined,
-          answer,
+          messages: messages,
           img: img.dbData?.filePath || undefined,
         }),
       }).then((res) => res.json());
@@ -44,8 +42,6 @@ const NewPrompt = ({ data }) => {
         .invalidateQueries({ queryKey: ["chat", data._id] })
         .then(() => {
           formRef.current.reset();
-          setQuestion("");
-          setAnswer("");
           setImg({
             isLoading: false,
             error: "",
@@ -60,7 +56,12 @@ const NewPrompt = ({ data }) => {
   });
 
   const add = async (text, isInitial) => {
-    if (!isInitial) setQuestion(text);
+    if (!isInitial) {
+      setMessages((prevMessages) => [
+        ...prevMessages,
+        { role: "user", content: text },
+      ]);
+    }
 
     try {
       const response = await fetch(`${import.meta.env.VITE_API_URL}/ai/openai`, {
@@ -84,14 +85,38 @@ const NewPrompt = ({ data }) => {
       let done = false;
       while (!done) {
         const { done: isDone, value } = await reader.read();
-        done = isDone; // Update the loop condition
+        done = isDone;
         if (value) {
           const chunk = decoder.decode(value, { stream: true });
-          accumulatedText += chunk;
-          setAnswer(accumulatedText);
+          try {
+            // Parse the chunk as JSON and extract just the response value
+            const jsonResponse = JSON.parse(chunk);
+            const responseText = jsonResponse.response || jsonResponse.content || jsonResponse.message;
+            if (responseText) {
+              accumulatedText += responseText;
+            } else {
+              accumulatedText += chunk;
+            }
+          } catch (e) {
+            // If parsing fails, use the raw chunk
+            accumulatedText += chunk;
+          }
+          
+          setMessages((prevMessages) => {
+            const lastMessage = prevMessages[prevMessages.length - 1];
+            if (lastMessage && lastMessage.role === "assistant") {
+              const updatedMessages = [...prevMessages];
+              updatedMessages[updatedMessages.length - 1].content = accumulatedText;
+              return updatedMessages;
+            } else {
+              return [
+                ...prevMessages,
+                { role: "assistant", content: accumulatedText },
+              ];
+            }
+          });
         }
       }
-      
 
       mutation.mutate();
     } catch (err) {
@@ -108,7 +133,6 @@ const NewPrompt = ({ data }) => {
     add(text, false);
   };
 
-  // IN PRODUCTION WE DON'T NEED IT
   const hasRun = useRef(false);
 
   useEffect(() => {
@@ -122,7 +146,6 @@ const NewPrompt = ({ data }) => {
 
   return (
     <>
-      {/* ADD NEW CHAT */}
       {img.isLoading && <div className="">Loading...</div>}
       {img.dbData?.filePath && (
         <IKImage
@@ -132,12 +155,18 @@ const NewPrompt = ({ data }) => {
           transformation={[{ width: 380 }]}
         />
       )}
-      {question && <div className="message user">{question}</div>}
-      {answer && (
-        <div className="message">
-          <Markdown>{answer}</Markdown>
+      {messages.map((message, index) => (
+        <div
+          key={index}
+          className={`message ${message.role === "user" ? "user" : ""}`}
+        >
+          {message.role === "assistant" ? (
+            <Markdown>{message.content}</Markdown>
+          ) : (
+            message.content
+          )}
         </div>
-      )}
+      ))}
       <div className="endChat" ref={endRef}></div>
       <form className="newForm" onSubmit={handleSubmit} ref={formRef}>
         <Upload setImg={setImg} />
