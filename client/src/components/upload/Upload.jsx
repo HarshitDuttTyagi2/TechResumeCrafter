@@ -74,9 +74,9 @@ const Upload = ({ setImg }) => {
         ref={ikUploadRef}
       />
       {
-        <label onClick={() => ikUploadRef.current.click()}>
-          <img src="/attachment.png" alt="" />
-        </label>
+        // <label onClick={() => ikUploadRef.current.click()}>
+        //   <img src="/attachment.png" alt="" />
+        // </label>
       }
     </IKContext>
   );

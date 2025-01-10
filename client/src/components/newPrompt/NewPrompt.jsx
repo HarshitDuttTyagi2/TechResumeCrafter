@@ -62,26 +62,27 @@ const NewPrompt = ({ data }) => {
         { role: "user", content: text },
       ]);
     }
-
+  
     try {
+      // Sending history and user message to /ai/openai
       const response = await fetch(`${import.meta.env.VITE_API_URL}/ai/openai`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          userMessage: text,
+          messages: [...messages, { role: "user", content: text }], // Include history and current user message
         }),
       });
-
+  
       if (!response.ok) {
         throw new Error("Failed to fetch response from OpenAI");
       }
-
+  
       const reader = response.body.getReader();
       const decoder = new TextDecoder("utf-8");
       let accumulatedText = "";
-
+  
       let done = false;
       while (!done) {
         const { done: isDone, value } = await reader.read();
@@ -89,7 +90,6 @@ const NewPrompt = ({ data }) => {
         if (value) {
           const chunk = decoder.decode(value, { stream: true });
           try {
-            // Parse the chunk as JSON and extract just the response value
             const jsonResponse = JSON.parse(chunk);
             const responseText = jsonResponse.response || jsonResponse.content || jsonResponse.message;
             if (responseText) {
@@ -98,10 +98,9 @@ const NewPrompt = ({ data }) => {
               accumulatedText += chunk;
             }
           } catch (e) {
-            // If parsing fails, use the raw chunk
             accumulatedText += chunk;
           }
-          
+  
           setMessages((prevMessages) => {
             const lastMessage = prevMessages[prevMessages.length - 1];
             if (lastMessage && lastMessage.role === "assistant") {
@@ -117,12 +116,14 @@ const NewPrompt = ({ data }) => {
           });
         }
       }
-
+  
+      // Sending history to /api/chats
       mutation.mutate();
     } catch (err) {
       console.log(err);
     }
   };
+  
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -137,7 +138,7 @@ const NewPrompt = ({ data }) => {
 
   useEffect(() => {
     if (!hasRun.current) {
-      if (data?.history?.length === 1) {
+      if (data?.history?.length >= 1) {
         add(data.history[0].parts[0].text, true);
       }
     }

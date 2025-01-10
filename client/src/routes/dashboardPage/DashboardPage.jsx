@@ -40,18 +40,18 @@ const DashboardPage = () => {
           <h1>TECH RESUME CRAFTER</h1>
         </div>
         <div className="options">
-          <div className="option">
+          {/* <div className="option">
             <img src="/chat.png" alt="" />
             <span>Create a New Chat</span>
           </div>
-          <div className="option">
+           <div className="option">
             <img src="/image.png" alt="" />
             <span>Analyze Images</span>
-          </div>
-          <div className="option">
+          </div> 
+           <div className="option">
             <img src="/code.png" alt="" />
             <span>Help me with my Code</span>
-          </div>
+          </div>  */}
         </div>
       </div>
       <div className="formContainer">
