@@ -17,7 +17,6 @@ const app = express();
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-console.log(process.env.CLIENT_URL); // Should log http://localhost:5173
 
 app.use(
   cors({
@@ -141,7 +140,7 @@ app.put("/api/chats/:id", ClerkExpressRequireAuth(), async (req, res) => {
     ...(question
       ? [{ role: "user", parts: [{ text: question }], ...(img && { img }) }]
       : []),
-    { role: "model", parts: [{ text: answer }] },
+    { role: "assistant", parts: [{ text: answer }] },
   ];
 
   try {

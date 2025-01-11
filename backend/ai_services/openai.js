@@ -4,14 +4,13 @@ dotenv.config();
 
 async function openai_call(req, res) {
   try {
-    const { userMessage, messages } = req.body; // Extract `userMessage` and `messages` from the request body
+    const { messages } = req.body; // Extract `messages` from the request body
 
-    if (!userMessage) {
-      return res.status(400).json({ error: 'Message is required' });
+    if (!messages || !Array.isArray(messages) || messages.length === 0) {
+      return res.status(400).json({ error: 'Messages are required and should be a non-empty array' });
     }
 
-    // Log the user message and the history
-    console.log("User message received at backend:", userMessage);
+    // Log the received messages
     console.log("Chat history received at backend:", messages);
 
     const apikey = process.env.OPENAI_API_KEY;
@@ -22,8 +21,11 @@ async function openai_call(req, res) {
 
     // Request for streaming completion
     const stream = await client.chat.completions.create({
-      messages: [{ role: 'user', content: userMessage }, ...messages], // Pass the user message and history to OpenAI
-      model: 'gpt-4o-mini',
+      messages: messages.map((msg) => ({
+        role: msg.role || 'user',
+        content: msg.parts?.[0]?.text || msg.text || '',
+      })),
+      model: 'gpt-4', // Adjust the model if needed
       stream: true, // Enable streaming
     });
 
@@ -32,27 +34,36 @@ async function openai_call(req, res) {
     // Log a checkpoint after receiving the response
     console.log("OpenAI API streaming response started");
 
-    // Iterate over the streamed response chunks
+    // Set headers to indicate streaming response
+    res.setHeader('Content-Type', 'application/json');
+    res.setHeader('Transfer-Encoding', 'chunked');
+
+    // Stream response to client
     for await (const chunk of stream) {
-      // Accumulate the response and send it to the client progressively
       const chunkText = chunk.choices[0]?.delta?.content || "";
       accumulatedText += chunkText;
 
       // Log each chunk received
       console.log("Streamed chunk received:", chunkText);
 
-      // You can optionally send the partial response to the client in real-time
-      res.write(chunkText); // Streaming the response back to the client
+      // Write the chunk to the response as JSON
+      res.write(JSON.stringify({ text: chunkText }));
     }
 
     // Log the final accumulated response
     console.log("Final response accumulated:", accumulatedText);
 
-    // Once streaming is done, end the response
+    // End the response once streaming is complete
     res.end();
   } catch (error) {
     console.error("Error in OpenAI API call:", error);
-    res.status(500).json({ error: 'Error calling OpenAI API' });
+
+    // Ensure the response is properly ended on error
+    if (!res.headersSent) {
+      res.status(500).json({ error: 'Error calling OpenAI API', details: error.message });
+    } else {
+      res.end();
+    }
   }
 }
 

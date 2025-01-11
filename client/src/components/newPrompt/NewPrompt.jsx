@@ -6,7 +6,15 @@ import Markdown from "react-markdown";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 const NewPrompt = ({ data }) => {
-  const [messages, setMessages] = useState([]);
+    // Process data.history to initialize messages state
+    const initialMessages = data?.history?.map(({ role, parts }) => ({
+      role,
+      content: parts[0]?.text || "",
+    })) || [];
+
+  const [messages, setMessages] = useState(initialMessages);
+  const [question, setQuestion] = useState(""); // Holds the current user's question
+  const [answer, setAnswer] = useState(""); 
   const [img, setImg] = useState({
     isLoading: false,
     error: "",
@@ -19,12 +27,12 @@ const NewPrompt = ({ data }) => {
 
   useEffect(() => {
     endRef.current.scrollIntoView({ behavior: "smooth" });
-  }, [data, messages, img.dbData]);
+  }, [data, question, answer, img.dbData]);
 
   const queryClient = useQueryClient();
 
   const mutation = useMutation({
-    mutationFn: () => {
+    mutationFn: ({ question, answer }) => {
       return fetch(`${import.meta.env.VITE_API_URL}/api/chats/${data._id}`, {
         method: "PUT",
         credentials: "include",
@@ -32,7 +40,8 @@ const NewPrompt = ({ data }) => {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          messages: messages,
+          question,
+          answer,
           img: img.dbData?.filePath || undefined,
         }),
       }).then((res) => res.json());
@@ -42,6 +51,8 @@ const NewPrompt = ({ data }) => {
         .invalidateQueries({ queryKey: ["chat", data._id] })
         .then(() => {
           formRef.current.reset();
+          setQuestion(""); // Reset the question after successful mutation
+          setAnswer(""); 
           setImg({
             isLoading: false,
             error: "",
@@ -57,12 +68,11 @@ const NewPrompt = ({ data }) => {
 
   const add = async (text, isInitial) => {
     if (!isInitial) {
-      setMessages((prevMessages) => [
-        ...prevMessages,
-        { role: "user", content: text },
-      ]);
+      setQuestion(text);
+      setMessages((prev) => [...prev, { role: "user", content: text }]); // Add user message to messages state
     }
-  
+    console.log("Sending messages to backend:", [...messages, { role: "user", content: text }]);
+
     try {
       // Sending history and user message to /ai/openai
       const response = await fetch(`${import.meta.env.VITE_API_URL}/ai/openai`, {
@@ -70,6 +80,7 @@ const NewPrompt = ({ data }) => {
         headers: {
           "Content-Type": "application/json",
         },
+        
         body: JSON.stringify({
           messages: [...messages, { role: "user", content: text }], // Include history and current user message
         }),
@@ -79,48 +90,26 @@ const NewPrompt = ({ data }) => {
         throw new Error("Failed to fetch response from OpenAI");
       }
   
-      const reader = response.body.getReader();
-      const decoder = new TextDecoder("utf-8");
-      let accumulatedText = "";
+      const result = await response.json();
+      const responseText = result.answer; // Extract only the `answer` field
   
-      let done = false;
-      while (!done) {
-        const { done: isDone, value } = await reader.read();
-        done = isDone;
-        if (value) {
-          const chunk = decoder.decode(value, { stream: true });
-          try {
-            const jsonResponse = JSON.parse(chunk);
-            const responseText = jsonResponse.response || jsonResponse.content || jsonResponse.message;
-            if (responseText) {
-              accumulatedText += responseText;
-            } else {
-              accumulatedText += chunk;
-            }
-          } catch (e) {
-            accumulatedText += chunk;
-          }
-  
-          setMessages((prevMessages) => {
-            const lastMessage = prevMessages[prevMessages.length - 1];
-            if (lastMessage && lastMessage.role === "assistant") {
-              const updatedMessages = [...prevMessages];
-              updatedMessages[updatedMessages.length - 1].content = accumulatedText;
-              return updatedMessages;
-            } else {
-              return [
-                ...prevMessages,
-                { role: "assistant", content: accumulatedText },
-              ];
-            }
-          });
-        }
+      if (!responseText) {
+        throw new Error("No answer received from the API");
       }
   
-      // Sending history to /api/chats
-      mutation.mutate();
+      // Set the assistant's answer
+      setAnswer(responseText);
+  
+      // // Add the assistant's response to the conversation
+      setMessages((prev) => [...prev, { role: "assistant", content: responseText }]);
+  
+      // Save the conversation to the backend
+      mutation.mutate({
+        question: text,
+        answer: responseText,
+    });
     } catch (err) {
-      console.log(err);
+      console.error("Error in addMessage:", err);
     }
   };
   
@@ -138,15 +127,17 @@ const NewPrompt = ({ data }) => {
 
   useEffect(() => {
     if (!hasRun.current) {
-      if (data?.history?.length >= 1) {
+      if (data?.history?.length === 1) {
         add(data.history[0].parts[0].text, true);
       }
     }
     hasRun.current = true;
   }, []);
+  
 
   return (
-    <>
+<>
+      {/* ADD NEW CHAT */}
       {img.isLoading && <div className="">Loading...</div>}
       {img.dbData?.filePath && (
         <IKImage
@@ -156,18 +147,12 @@ const NewPrompt = ({ data }) => {
           transformation={[{ width: 380 }]}
         />
       )}
-      {messages.map((message, index) => (
-        <div
-          key={index}
-          className={`message ${message.role === "user" ? "user" : ""}`}
-        >
-          {message.role === "assistant" ? (
-            <Markdown>{message.content}</Markdown>
-          ) : (
-            message.content
-          )}
+      {question && <div className="message user">{question}</div>}
+      {answer && (
+        <div className="message">
+          <Markdown>{answer}</Markdown>
         </div>
-      ))}
+      )}
       <div className="endChat" ref={endRef}></div>
       <form className="newForm" onSubmit={handleSubmit} ref={formRef}>
         <Upload setImg={setImg} />
