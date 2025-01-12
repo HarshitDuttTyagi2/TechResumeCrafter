@@ -71,7 +71,13 @@ const NewPrompt = ({ data }) => {
       setQuestion(text);
       setMessages((prev) => [...prev, { role: "user", content: text }]); // Add user message to messages state
     }
-    console.log("Sending messages to backend:", [...messages, { role: "user", content: text }]);
+    
+
+     // Prepare the history: keep only the last 3 user and assistant messages
+  const recentHistory = [...messages, { role: "user", content: text }]
+  .slice(-6); // Last 3 user-assistant pairs (each pair is 2 messages)
+
+  console.log("Sending messages to backend:", recentHistory);
 
     try {
       // Sending history and user message to /ai/openai
@@ -82,7 +88,7 @@ const NewPrompt = ({ data }) => {
         },
         
         body: JSON.stringify({
-          messages: [...messages, { role: "user", content: text }], // Include history and current user message
+          messages: recentHistory, // Include history and current user message
         }),
       });
   
