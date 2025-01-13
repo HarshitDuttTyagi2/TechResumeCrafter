@@ -6,15 +6,16 @@ import Markdown from "react-markdown";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 const NewPrompt = ({ data }) => {
-    // Process data.history to initialize messages state
-    const initialMessages = data?.history?.map(({ role, parts }) => ({
+
+  const history = useRef(
+    data?.history?.map(({ role, parts }) => ({
       role,
       content: parts[0]?.text || "",
-    })) || [];
+    })) || []
+  );
 
-  const [messages, setMessages] = useState(initialMessages);
   const [question, setQuestion] = useState(""); // Holds the current user's question
-  const [answer, setAnswer] = useState(""); 
+  const [answer, setAnswer] = useState("");
   const [img, setImg] = useState({
     isLoading: false,
     error: "",
@@ -25,14 +26,14 @@ const NewPrompt = ({ data }) => {
   const endRef = useRef(null);
   const formRef = useRef(null);
 
+  const queryClient = useQueryClient();
+
   useEffect(() => {
     endRef.current.scrollIntoView({ behavior: "smooth" });
   }, [data, question, answer, img.dbData]);
 
-  const queryClient = useQueryClient();
-
   const mutation = useMutation({
-    mutationFn: ({ question, answer }) => {
+    mutationFn: () => {
       return fetch(`${import.meta.env.VITE_API_URL}/api/chats/${data._id}`, {
         method: "PUT",
         credentials: "include",
@@ -40,8 +41,8 @@ const NewPrompt = ({ data }) => {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          question,
-          answer,
+          question: question.length ? question : undefined,
+          answer: answer.length ? answer: undefined,
           img: img.dbData?.filePath || undefined,
         }),
       }).then((res) => res.json());
@@ -52,7 +53,7 @@ const NewPrompt = ({ data }) => {
         .then(() => {
           formRef.current.reset();
           setQuestion(""); // Reset the question after successful mutation
-          setAnswer(""); 
+          setAnswer("");
           setImg({
             isLoading: false,
             error: "",
@@ -66,18 +67,18 @@ const NewPrompt = ({ data }) => {
     },
   });
 
+
   const add = async (text, isInitial) => {
     if (!isInitial) {
       setQuestion(text);
-      setMessages((prev) => [...prev, { role: "user", content: text }]); // Add user message to messages state
+      history.current.push({ role: "user", content: text }); // Add user message to history
     }
-    
 
-     // Prepare the history: keep only the last 3 user and assistant messages
-  const recentHistory = [...messages, { role: "user", content: text }]
-  .slice(-6); // Last 3 user-assistant pairs (each pair is 2 messages)
 
-  console.log("Sending messages to backend:", recentHistory);
+    // Prepare the recent history: keep only the last 6 messages
+     const recentHistory = [...history.current].slice(-6);
+
+    // console.log("Sending messages to backend:", recentHistory);
 
     try {
       // Sending history and user message to /ai/openai
@@ -86,39 +87,35 @@ const NewPrompt = ({ data }) => {
         headers: {
           "Content-Type": "application/json",
         },
-        
         body: JSON.stringify({
-          messages: recentHistory, // Include history and current user message
+          messages: recentHistory, // Include history
         }),
       });
-  
+
       if (!response.ok) {
         throw new Error("Failed to fetch response from OpenAI");
       }
-  
+
       const result = await response.json();
       const responseText = result.answer; // Extract only the `answer` field
-  
+
       if (!responseText) {
         throw new Error("No answer received from the API");
       }
-  
       // Set the assistant's answer
       setAnswer(responseText);
-  
-      // // Add the assistant's response to the conversation
-      setMessages((prev) => [...prev, { role: "assistant", content: responseText }]);
-  
-      // Save the conversation to the backend
-      mutation.mutate({
-        question: text,
-        answer: responseText,
-    });
+
+      // Add the assistant's response to history
+      history.current.push({ role: "assistant", content: responseText });
+
+    // Use setTimeout to delay the mutation until state is updated
+    setTimeout(() => {
+      mutation.mutate(); // Trigger the mutation to save the chat
+    }, 500);
     } catch (err) {
       console.error("Error in addMessage:", err);
     }
   };
-  
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -139,10 +136,9 @@ const NewPrompt = ({ data }) => {
     }
     hasRun.current = true;
   }, []);
-  
 
   return (
-<>
+    <>
       {/* ADD NEW CHAT */}
       {img.isLoading && <div className="">Loading...</div>}
       {img.dbData?.filePath && (
