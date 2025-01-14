@@ -96,22 +96,32 @@ const NewPrompt = ({ data }) => {
         throw new Error("Failed to fetch response from OpenAI");
       }
 
-      const result = await response.json();
-      const responseText = result.answer; // Extract only the `answer` field
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder("utf-8");
+      let streamingAnswer = "";
+  
+      let done = false; // Initialize the done flag
 
-      if (!responseText) {
-        throw new Error("No answer received from the API");
+      while (!done) {
+        const { value, done: chunkDone } = await reader.read();
+        done = chunkDone; // Update the done flag with the current chunk's status
+      
+        if (value) {
+          const chunk = decoder.decode(value, { stream: true });
+          streamingAnswer += chunk;
+      
+          // Update the answer state with the new chunk
+          setAnswer((prev) => prev + chunk);
+        }
       }
-      // Set the assistant's answer
-      setAnswer(responseText);
-
-      // Add the assistant's response to history
-      history.current.push({ role: "assistant", content: responseText });
-
-    // Use setTimeout to delay the mutation until state is updated
-    setTimeout(() => {
-      mutation.mutate(); // Trigger the mutation to save the chat
-    }, 500);
+  
+      // Add the final assistant's response to history
+      history.current.push({ role: "assistant", content: streamingAnswer });
+  
+      // Use setTimeout to delay the mutation until state is updated
+      setTimeout(() => {
+        mutation.mutate(); // Trigger the mutation to save the chat
+      }, 500);
     } catch (err) {
       console.error("Error in addMessage:", err);
     }

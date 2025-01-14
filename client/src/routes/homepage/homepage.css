@@ -79,7 +79,7 @@
   
           .bg {
             background-image: url("/bg.png");
-            opacity: 0.2;
+            opacity: 0.4;
             width: 200%;
             height: 100%;
             background-size: auto 100%;
@@ -128,7 +128,7 @@
       position: absolute;
       bottom: 0;
       left: 0;
-      opacity: 0.1;
+      opacity: 0.2;
       animation: 100s linear infinite rotateOrbital;
       z-index: -1;
     }
