@@ -1,40 +1,61 @@
-.endChat{
-    padding-bottom: 100px;
-  }
-    .newForm{
-      width: 50%;
-      position: absolute;
-      bottom: 0;
-      background-color: #FAF4F0;
-      border-radius: 20px;
-      display: flex;
-      align-items: center;
-      gap: 20px;
-      padding: 0px 20px;
-  
-  
-      input{
-        flex:1;
-        padding:20px;
-        border: none;
-        outline: none;
-        background-color: transparent;
-        /* color: #ececec; */
-      }
-  
-      button,label{
-        border-radius: 50%;
-        background-color: #FAF4F0;
-        border: none;
-        padding: 10px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-  
-        img{
-          width: 16px;
-          height: 16px;
-        }
-      }
-    }
+.endChat {
+  padding-bottom: 100px;
+}
+
+.newForm {
+  width: 50%;
+  position: absolute;
+  bottom: 0;
+  background-color: #faf4f0;
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 0px 20px;
+  box-shadow: 0px -4px 6px rgba(0, 0, 0, 0.1);
+  z-index: 10;
+}
+
+.newForm input,
+.newForm textarea {
+  flex: 1;
+  padding: 20px;
+  border: none;
+  outline: none;
+  background-color: transparent;
+  font-size: 16px;
+  color: #333;
+}
+
+.newForm textarea {
+  flex: 1;
+  padding: 20px;
+  border: none;
+  outline: none;
+  background-color: #faf4f0;
+  border-radius: 10px;
+  font-size: 16px;
+  color: black;
+  resize: none;
+  overflow-y: auto;
+  min-height: 40px;
+  max-height: 200px;
+  transition: height 0.2s ease;
+}
+
+.newForm button,
+.newForm label {
+  border-radius: 50%;
+  background-color: #faf4f0;
+  border: none;
+  padding: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.newForm button img {
+  width: 16px;
+  height: 16px;
+}

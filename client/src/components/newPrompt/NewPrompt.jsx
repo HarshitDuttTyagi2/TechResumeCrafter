@@ -25,12 +25,17 @@ const NewPrompt = ({ data }) => {
 
   const endRef = useRef(null);
   const formRef = useRef(null);
+  const textRef = useRef(null); // Reference to the input or textarea element
 
   const queryClient = useQueryClient();
 
+  // Reset textarea size when the answer is received
   useEffect(() => {
-    endRef.current.scrollIntoView({ behavior: "smooth" });
-  }, [data, question, answer, img.dbData]);
+    if (textRef.current) {
+      textRef.current.style.height = "auto"; // Reset the height
+      textRef.current.style.height = `${textRef.current.scrollHeight}px`; // Adjust the height based on content
+    }
+  }, [answer]);
 
   const mutation = useMutation({
     mutationFn: () => {
@@ -67,18 +72,15 @@ const NewPrompt = ({ data }) => {
     },
   });
 
-
   const add = async (text, isInitial) => {
+    
     if (!isInitial) {
       setQuestion(text);
       history.current.push({ role: "user", content: text }); // Add user message to history
     }
 
-
     // Prepare the recent history: keep only the last 6 messages
-     const recentHistory = [...history.current].slice(-6);
-
-    // console.log("Sending messages to backend:", recentHistory);
+    const recentHistory = [...history.current].slice(-6);
 
     try {
       // Sending history and user message to /ai/openai
@@ -114,10 +116,10 @@ const NewPrompt = ({ data }) => {
           setAnswer((prev) => prev + chunk);
         }
       }
-  
+
       // Add the final assistant's response to history
       history.current.push({ role: "assistant", content: streamingAnswer });
-  
+
       // Use setTimeout to delay the mutation until state is updated
       setTimeout(() => {
         mutation.mutate(); // Trigger the mutation to save the chat
@@ -129,12 +131,14 @@ const NewPrompt = ({ data }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
+  
     const text = e.target.text.value;
     if (!text) return;
-
-    add(text, false);
+  
+    e.target.text.value = ""; // Clear the textarea immediately
+    add(text, false); // Process the input
   };
+  
 
   const hasRun = useRef(false);
 
@@ -147,9 +151,16 @@ const NewPrompt = ({ data }) => {
     hasRun.current = true;
   }, []);
 
+  useEffect(() => {
+    if (textRef.current) {
+      textRef.current.style.height = "auto"; // Reset height
+      textRef.current.style.height = `${textRef.current.scrollHeight}px`; // Adjust height
+    }
+  }, [question]); // Re-adjust when `question` changes
+  
+
   return (
     <>
-      {/* ADD NEW CHAT */}
       {img.isLoading && <div className="">Loading...</div>}
       {img.dbData?.filePath && (
         <IKImage
@@ -167,13 +178,28 @@ const NewPrompt = ({ data }) => {
       )}
       <div className="endChat" ref={endRef}></div>
       <form className="newForm" onSubmit={handleSubmit} ref={formRef}>
-        <Upload setImg={setImg} />
-        <input id="file" type="file" multiple={false} hidden />
-        <input type="text" name="text" placeholder="Ask anything..." />
-        <button>
-          <img src="/arrow.png" alt="" />
-        </button>
-      </form>
+  <Upload setImg={setImg} />
+  <input id="file" type="file" multiple={false} hidden />
+  <textarea
+    name="text"
+    placeholder="Ask anything..."
+    ref={textRef}
+    onKeyDown={(e) => {
+      if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault(); // Prevent newline
+        formRef.current.requestSubmit(); // Submit the form
+      }
+    }}
+    onInput={(e) => {
+      e.target.style.height = "auto"; // Reset height
+      e.target.style.height = `${e.target.scrollHeight}px`; // Adjust height
+    }}
+  ></textarea>
+  <button>
+    <img src="/arrow.png" alt="Send" />
+  </button>
+</form>
+
     </>
   );
 };

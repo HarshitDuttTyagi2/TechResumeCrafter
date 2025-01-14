@@ -1,10 +1,10 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import "./dashboardPage.css";
 import { useNavigate } from "react-router-dom";
+import { useState, useRef } from "react";
 
 const DashboardPage = () => {
   const queryClient = useQueryClient();
-
   const navigate = useNavigate();
 
   const mutation = useMutation({
@@ -19,19 +19,31 @@ const DashboardPage = () => {
       }).then((res) => res.json());
     },
     onSuccess: (id) => {
-      // Invalidate and refetch
       queryClient.invalidateQueries({ queryKey: ["userChats"] });
       navigate(`/dashboard/chats/${id}`);
     },
   });
 
+  const [text, setText] = useState("");
+  const textareaRef = useRef(null);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const text = e.target.text.value;
-    if (!text) return;
+    if (!text.trim()) return;
 
     mutation.mutate(text);
+    setText(""); // Clear the textarea after submission
   };
+
+  const handleInputChange = (e) => {
+    setText(e.target.value);
+
+    // Dynamically adjust the height of the textarea
+    const textarea = textareaRef.current;
+    textarea.style.height = "auto"; // Reset height
+    textarea.style.height = `${textarea.scrollHeight}px`; // Adjust to content
+  };
+
   return (
     <div className="dashboardPage">
       <div className="texts">
@@ -40,7 +52,7 @@ const DashboardPage = () => {
           <h1>TECH RESUME CRAFTER</h1>
         </div>
         <div className="options">
-          {/* <div className="option">
+           {/* <div className="option">
             <img src="/chat.png" alt="" />
             <span>Create a New Chat</span>
           </div>
@@ -56,8 +68,22 @@ const DashboardPage = () => {
       </div>
       <div className="formContainer">
         <form onSubmit={handleSubmit}>
-          <input type="text" name="text" placeholder="Ask me anything..." />
-          <button>
+          <textarea
+            ref={textareaRef}
+            name="text"
+            placeholder="Ask me anything..."
+            value={text}
+            onChange={handleInputChange}
+            rows="1" // Default rows
+            className="expandingTextarea"
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault(); // Prevent newline
+                handleSubmit(e); // Submit the form
+              }
+            }}
+          />
+          <button type="submit">
             <img src="/arrow.png" alt="" />
           </button>
         </form>
