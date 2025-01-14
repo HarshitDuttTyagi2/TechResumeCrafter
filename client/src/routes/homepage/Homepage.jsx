@@ -9,7 +9,7 @@ const Homepage = () => {
 
   return (
     <div className="homepage">
-      <img src="/orbital.png" alt="" className="orbital" />
+      <img src="/orbitaln.png" alt="" className="orbital" />
       <div className="left">
         <h1>TECH RESUME CRAFTER</h1>
         <h2>Supercharge your creativity and productivity</h2>
