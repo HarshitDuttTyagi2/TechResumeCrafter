@@ -9,16 +9,6 @@ const DashboardPage = () => {
 
   const mutation = useMutation({
     mutationFn: (text) => {
-          // Retrieve the token from the cookies
-    const token = document.cookie
-    .split("; ")
-    .find((row) => row.startsWith("Cookie"))
-    ?.split("=")[1]; // Replace "authToken" with your cookie name
-
-  if (!token) {
-    throw new Error("Authentication token not found.");
-  }
-  console.log(token);
       return fetch(`${import.meta.env.VITE_API_URL}/api/chats`, {
         method: "POST",
         credentials: "include",
