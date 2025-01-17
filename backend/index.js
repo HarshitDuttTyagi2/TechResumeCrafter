@@ -35,17 +35,19 @@ const connect = async () => {
     console.log(err);
   }
 };
+// console.log(process.env.IMAGE_KIT_ENDPOINT); // Should print your endpoint
+// console.log(process.env.IMAGE_KIT_PUBLIC_KEY); // Should print your public key
+// console.log(process.env.IMAGE_KIT_PRIVATE_KEY);
+const imagekit = new ImageKit({
+  urlEndpoint: process.env.IMAGE_KIT_ENDPOINT,
+  publicKey: process.env.IMAGE_KIT_PUBLIC_KEY,
+  privateKey: process.env.IMAGE_KIT_PRIVATE_KEY,
+});
 
-// const imagekit = new ImageKit({
-//   urlEndpoint: process.env.IMAGE_KIT_ENDPOINT,
-//   publicKey: process.env.IMAGE_KIT_PUBLIC_KEY,
-//   privateKey: process.env.IMAGE_KIT_PRIVATE_KEY,
-// });
-
-// app.get("/api/upload", (req, res) => {
-//   const result = imagekit.getAuthenticationParameters();
-//   res.send(result);
-// });
+app.get("/api/upload", (req, res) => {
+  const result = imagekit.getAuthenticationParameters();
+  res.send(result);
+});
 
 app.post("/api/chats", ClerkExpressRequireAuth(), async (req, res) => {
   const userId = req.auth.userId;

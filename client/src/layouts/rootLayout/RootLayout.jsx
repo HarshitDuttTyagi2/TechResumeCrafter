@@ -19,7 +19,7 @@ const RootLayout = () => {
           <header>
             <Link to="/" className="logo">
               <img src="/logo.png" alt="" />
-              <span>TECH RESUME CRAFTER</span>
+              <span>Tech Resume Crafter</span>
             </Link>
             <div className="user">
               <SignedIn>

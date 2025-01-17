@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import "./chatList.css";
 import { useQuery } from "@tanstack/react-query";
-console.log("API URL:", import.meta.env.VITE_API_URL);
+// console.log("API URL:", import.meta.env.VITE_API_URL);
 
 const ChatList = () => {
   const { isPending, error, data } = useQuery({
@@ -14,12 +14,12 @@ const ChatList = () => {
 
   return (
     <div className="chatList">
-      <span className="title">DASHBOARD</span>
+      <span className="title"><b>DASHBOARD</b></span>
       <Link to="/dashboard">Create a new Chat</Link>
       <Link to="/">Explore Crafter</Link>
       <Link to="/">Contact</Link>
       <hr />
-      <span className="title">RECENT CHATS</span>
+      <span className="title"><b>RECENT CHATS</b></span>
       <div className="list">
         {isPending
           ? "Loading..."
@@ -35,8 +35,8 @@ const ChatList = () => {
       <div className="upgrade">
         <img src="/logo.png" alt="" />
         <div className="texts">
-          <span>Enjoy the superpowers of Crafter.</span>
-          <span>Complete the work swifty.</span>
+          <span>Enjoy the superpowers of crafter.</span>
+          <span>Complete the work swiftly.</span>
         </div>
       </div>
     </div>

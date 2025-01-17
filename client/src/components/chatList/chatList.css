@@ -21,7 +21,7 @@
     .list {
       display: flex;
       flex-direction: column;
-      overflow: scroll;
+      overflow: auto;
     }
   
     a {
@@ -29,7 +29,7 @@
       border-radius: 10px;
   
       &:hover {
-        background-color: #FF5C44;
+        background-color: #F6EEDF;
       }
     }
   
