@@ -125,7 +125,6 @@ app.get("/api/chats/:id", ClerkExpressRequireAuth(), async (req, res) => {
 
   try {
     const chat = await Chat.findOne({ _id: req.params.id, userId });
-
     res.status(200).send(chat);
   } catch (err) {
     console.log(err);

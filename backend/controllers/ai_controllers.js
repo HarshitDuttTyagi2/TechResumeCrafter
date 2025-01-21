@@ -1,6 +1,5 @@
 import { OpenAI } from "openai"; // Ensure correct import
 import dotenv from "dotenv";
-import { Readable } from "stream";
 dotenv.config();
 
 async function openai_call(req, res) {
