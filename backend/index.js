@@ -174,13 +174,15 @@ app.use((err, req, res, next) => {
 // PRODUCTION
 app.use(express.static(path.join(__dirname, "../client/dist")));
 
+app.get('/health',(req, res)=>{
+  res.send({"status":"up"})
+})
+
 app.get("*", (req, res) => {
   res.sendFile(path.join(__dirname, "../client/dist", "index.html"));
 });
 
-app.get('/health',(req, res)=>{
-  res.send({"status":"up"})
-})
+
 
 app.listen(port, () => {
   connect();
