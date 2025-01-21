@@ -178,6 +178,10 @@ app.get("*", (req, res) => {
   res.sendFile(path.join(__dirname, "../client/dist", "index.html"));
 });
 
+app.get('/health',(req, res)=>{
+  res.send({"status":"up"})
+})
+
 app.listen(port, () => {
   connect();
   console.log("Server running on 3000");
