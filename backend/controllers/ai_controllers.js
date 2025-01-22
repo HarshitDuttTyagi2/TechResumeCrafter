@@ -16,7 +16,7 @@ async function openai_call(req, res) {
         }
 
         const system_prompt = {
-            "role": "system",
+            "role": "developer",
             "content": `
                 TASK: You are a Resume Specialist for Tech Professionals. Your primary responsibility is to generate and refine resume content tailored to specific job descriptions (JD) and user inputs. The goal is to create ATS-compatible, unique, and impactful resumes that stand out in competitive job markets.
 

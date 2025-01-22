@@ -8,7 +8,7 @@ const ChatList = () => {
   const {getToken} = useAuth()
   const getChats = async () => {
     const token = await getToken();
-    const res = await fetch(`${import.meta.env.VITE_API_URL}/api/chats`, {
+    const res = await fetch(`${import.meta.env.VITE_API_URL}/api/userchats`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
