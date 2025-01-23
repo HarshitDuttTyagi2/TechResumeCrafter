@@ -27,15 +27,16 @@ app.use(
 );
 app.options('*', cors());
 app.use(express.json());
+mongoose.connect(process.env.MONGO, { useNewUrlParser: true, useUnifiedTopology: true, }) .then(() => { console.log("MongoDB connected successfully!"); }) .catch((err) => { console.error("Error connecting to MongoDB:", err.message); });
+// const connect = async () => {
+//   try {
+//     await mongoose.connect(process.env.MONGO);
+//     console.log("Connected to MongoDB");
+//   } catch (err) {
+//     console.log(err);
+//   }
+// };
 
-const connect = async () => {
-  try {
-    await mongoose.connect(process.env.MONGO);
-    console.log("Connected to MongoDB");
-  } catch (err) {
-    console.log(err);
-  }
-};
 // console.log(process.env.IMAGE_KIT_ENDPOINT); // Should print your endpoint
 // console.log(process.env.IMAGE_KIT_PUBLIC_KEY); // Should print your public key
 // console.log(process.env.IMAGE_KIT_PRIVATE_KEY);
@@ -175,6 +176,6 @@ app.get("/health", (req, res) => {
 });
 
 app.listen(port, () => {
-  connect();
+  // connect();
   console.log("Server running on 3000");
 });
