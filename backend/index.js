@@ -11,19 +11,20 @@ import aiRoutes from "./routes/ai_routes.js";
 import dotenv from "dotenv";
 dotenv.config();
 
-
 const port = process.env.PORT || 3000;
 const app = express();
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-app.use(cors({
-  origin: '*',
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: true
-}));
+app.use(
+  cors({
+    origin: "*",
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+    credentials: true,
+  })
+);
 
 app.use(express.json());
 
@@ -119,7 +120,6 @@ app.get("/api/chats", ClerkExpressRequireAuth(), async (req, res) => {
   }
 });
 
-
 app.get("/api/chats/:id", ClerkExpressRequireAuth(), async (req, res) => {
   const userId = req.auth.userId;
 
@@ -155,7 +155,7 @@ app.put("/api/chats/:id", ClerkExpressRequireAuth(), async (req, res) => {
         },
       }
     );
-    
+
     res.status(200).send(updatedChat);
   } catch (err) {
     console.log(err);
@@ -163,26 +163,16 @@ app.put("/api/chats/:id", ClerkExpressRequireAuth(), async (req, res) => {
   }
 });
 
-app.use('/ai',aiRoutes);
-
+app.use("/ai", aiRoutes);
 
 app.use((err, req, res, next) => {
-  console.error(err.stack);S
+  console.error(err.stack);
   res.status(401).send("Unauthenticated!");
 });
 
-// PRODUCTION
-app.use(express.static(path.join(__dirname, "../client/dist")));
-
-app.get('/health',(req, res)=>{
-  res.send({"status":"up"})
-})
-
-app.get("*", (req, res) => {
-  res.sendFile(path.join(__dirname, "../client/dist", "index.html"));
+app.get("/health", (req, res) => {
+  res.send({ status: "up" });
 });
-
-
 
 app.listen(port, () => {
   connect();
