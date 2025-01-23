@@ -97,7 +97,7 @@ app.post("/api/chats", ClerkExpressRequireAuth(), async (req, res) => {
     }
   } catch (err) {
     console.log(err);
-    res.status(500).send("Error creating chat!");
+    res.status(500).send(err.toString());
   }
 });
 
