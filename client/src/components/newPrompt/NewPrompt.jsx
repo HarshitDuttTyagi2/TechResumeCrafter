@@ -5,7 +5,7 @@ import { IKImage } from "imagekitio-react";
 import Markdown from "react-markdown";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth, useClerk } from '@clerk/clerk-react';
-
+import { ScaleLoader } from "react-spinners";
 const NewPrompt = ({ data }) => {
   const {getToken }= useAuth();
   const history = useRef(
@@ -163,7 +163,11 @@ const NewPrompt = ({ data }) => {
 
   return (
     <>
-      {img.isLoading && <div className="">Loading...</div>}
+      {img.isLoading && (
+        <div className="loader-container">
+          <ScaleLoader size={25} color={"black"} loading={img.isLoading} />
+        </div>
+      )}
       {img.dbData?.filePath && (
         <IKImage
           urlEndpoint={import.meta.env.VITE_IMAGE_KIT_ENDPOINT}

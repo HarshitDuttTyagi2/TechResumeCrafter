@@ -5,7 +5,7 @@ import { useLocation } from "react-router-dom";
 import Markdown from "react-markdown";
 import { IKImage } from "imagekitio-react";
 import { useAuth } from '@clerk/clerk-react';
-
+import { ScaleLoader } from "react-spinners";
 const ChatPage = () => {
   const path = useLocation().pathname;
   const chatId = path.split("/").pop();
@@ -30,7 +30,11 @@ const ChatPage = () => {
       <div className="wrapper">
         <div className="chat">
           {isPending
-            ? "Loading..."
+            ? (
+              <div className="loader-container">
+                <ScaleLoader size={20} color={"black"} loading={isPending} height={35} width={4} />
+              </div>
+            )
             : error
             ? "Something went wrong!"
             : data?.history?.map((message, i) => (

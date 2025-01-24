@@ -28,8 +28,8 @@ const ChatList = () => {
     <div className="chatList">
       <span className="title"><b>DASHBOARD</b></span>
       <Link to="/dashboard">Create a new Chat</Link>
-      <Link to="/">Explore Crafter</Link>
-      <Link to="/">Contact</Link>
+      {/* <Link to="/">Explore Crafter</Link>
+      <Link to="/">Contact</Link> */}
       <hr />
       <span className="title"><b>RECENT CHATS</b></span>
       <div className="list">
