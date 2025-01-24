@@ -3,6 +3,7 @@ import "./chatList.css";
 import { useQuery } from "@tanstack/react-query";
 // console.log("API URL:", import.meta.env.VITE_API_URL);
 import { useAuth } from '@clerk/clerk-react';
+import { ScaleLoader } from "react-spinners" 
 
 const ChatList = () => {
   const {getToken} = useAuth()
@@ -32,15 +33,21 @@ const ChatList = () => {
       <hr />
       <span className="title"><b>RECENT CHATS</b></span>
       <div className="list">
-        {isPending
-          ? "Loading..."
-          : error
-          ? "Something went wrong!"
-          : data?.map((chat) => (
-              <Link to={`/dashboard/chats/${chat._id}`} key={chat._id}>
-                {chat.title}
-              </Link>
-            ))}
+        {isPending ? (
+          <div className="loader">
+            <div style={{ display: 'flex', justifyContent: 'center' }}>
+              <ScaleLoader size={25} color={"black"} loading={isPending} />
+            </div>
+          </div>
+        ) : error ? (
+          "Something went wrong!"
+        ) : (
+          data?.map((chat) => (
+            <Link to={`/dashboard/chats/${chat._id}`} key={chat._id}>
+              {chat.title}
+            </Link>
+          ))
+        )}
       </div>
       <hr />
       <div className="upgrade">
