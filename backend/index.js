@@ -80,6 +80,7 @@ app.post("/api/chats", ClerkExpressRequireAuth(), async (req, res) => {
       });
 
       await newUserChats.save();
+      res.status(201).send(newChat._id);
     } else {
       // IF EXISTS, PUSH THE CHAT TO THE EXISTING ARRAY
       await UserChats.updateOne(
@@ -110,7 +111,7 @@ app.get("/api/chats", ClerkExpressRequireAuth(), async (req, res) => {
 
     // Check if the userChats array is empty
     if (userChats.length === 0) {
-      return res.status(404).send("No user chats found!");
+      return res.status(200).send([]);
     }
 
     // If there are userChats, send the chats
