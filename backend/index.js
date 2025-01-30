@@ -8,6 +8,7 @@ import Chat from "./models/chat.js";
 import UserChats from "./models/userChats.js";
 import { ClerkExpressRequireAuth } from "@clerk/clerk-sdk-node";
 import aiRoutes from "./routes/ai_routes.js";
+import promptRoutes from "./routes/prompt_routes.js";
 import dotenv from "dotenv";
 dotenv.config();
 
@@ -166,6 +167,7 @@ app.put("/api/chats/:id", ClerkExpressRequireAuth(), async (req, res) => {
 });
 
 app.use("/ai", aiRoutes);
+app.use("/api/prompt", promptRoutes);
 
 app.use((err, req, res, next) => {
   console.error(err.stack);
