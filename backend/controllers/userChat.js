@@ -2,7 +2,10 @@ import userChats from "../models/userChats.js"
 
 async function SavePrompt(req, res){
     try {
-        const userId = 'user_2rLnLrqIUFIUTFLT6x44Xeig0Cy' || req.auth.userId;
+        const userId = req.auth.userId;
+        if (!userId) {
+            throw new Error("User not found");
+        }
         const { prompt } = req?.body;
         await userChats.updateOne(
             { userId: userId },
@@ -15,4 +18,20 @@ async function SavePrompt(req, res){
     }
 }
 
-export { SavePrompt };
+async function getPrompt(userId) {
+    try {
+        if (!userId) {
+            return { success: false, message: "no user found" };
+        }
+        const result = await userChats.findOne(
+            { userId: userId }
+        );
+        const additional_prompt = result?.additional_prompt;
+        return { success: true, additional_prompt: additional_prompt };
+    } catch (error) {
+        console.error("Error finding prompt:", error);
+        return { success: false, message: "Error finding prompt." };
+    }
+}
+
+export { SavePrompt, getPrompt };
