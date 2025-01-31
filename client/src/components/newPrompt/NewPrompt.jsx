@@ -85,11 +85,13 @@ const NewPrompt = ({ data }) => {
     const recentHistory = [...history.current].slice(-6);
 
     try {
+      const token = await getToken();
       // Sending history and user message to /ai/openai
       const response = await fetch(`${import.meta.env.VITE_API_URL}/ai/openai`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          "Authorization": 'Bearer ' + token
         },
         body: JSON.stringify({
           messages: recentHistory, // Include history

@@ -5,7 +5,7 @@ dotenv.config();
 
 async function openai_call(req, res) {
     try {
-        const userId = 'user_2rLnLrqIUFIUTFLT6x44Xeig0Cy' || req.auth.userId;
+        const userId = req.auth.userId;
         const apikey = process.env.OPENAI_API_KEY;
         const client = new OpenAI({ apiKey: apikey });
         let additionalPrompt;
