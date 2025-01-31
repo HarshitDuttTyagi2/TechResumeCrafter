@@ -72,6 +72,8 @@ async function openai_call(req, res) {
             `
         };
         if (additionalPrompt !== undefined) {
+            let special_instruct = "/n The following text is provided by the user and needs to be more focused. Your first priority is to follow the user's instructions below, followed by the instructions given above."
+            system_prompt.content += special_instruct;
             system_prompt.content += additionalPrompt;
         }
 
