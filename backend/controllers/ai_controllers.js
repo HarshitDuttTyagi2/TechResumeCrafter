@@ -1,11 +1,18 @@
 import { OpenAI } from "openai"; // Ensure correct import
 import dotenv from "dotenv";
+import { getPrompt } from "./userChat.js"
 dotenv.config();
 
 async function openai_call(req, res) {
     try {
+        const userId = req.auth.userId;
         const apikey = process.env.OPENAI_API_KEY;
         const client = new OpenAI({ apiKey: apikey });
+        let additionalPrompt;
+        if(userId){
+            const result = await getPrompt(userId);
+            additionalPrompt = result.additional_prompt;
+        }
 
         let { messages } = req.body;
         console.log(messages);
@@ -15,7 +22,7 @@ async function openai_call(req, res) {
             throw new Error("Invalid messages format. Expected an array.");
         }
 
-        const system_prompt = {
+        let system_prompt = {
             "role": "system",
             "content": `
                 TASK: You are a Resume Specialist for Tech Professionals. Your primary responsibility is to generate and refine resume content tailored to specific job descriptions (JD) and user inputs. The goal is to create ATS-compatible, unique, and impactful resumes that stand out in competitive job markets.
@@ -64,6 +71,9 @@ async function openai_call(req, res) {
                 NOTE: Adhere strictly to these instructions to ensure high-quality, tailored, and ATS-friendly responses in every instance.
             `
         };
+        if (additionalPrompt !== undefined) {
+            system_prompt.content += additionalPrompt;
+        }
 
         // Prepend the system prompt to the messages array
         messages.unshift(system_prompt);
@@ -71,7 +81,7 @@ async function openai_call(req, res) {
         const response = await client.chat.completions.create({
             model: "gpt-4o", // Ensure the correct model is used
             messages,
-            max_tokens: 5000,
+            max_tokens: 8000,
             stream: true, // Enable streaming
         });
 

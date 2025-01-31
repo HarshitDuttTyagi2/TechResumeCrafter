@@ -6,6 +6,9 @@ const userChatsSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    additional_prompt : {
+      type: String,
+    },
     chats: [
       {
         _id: {
