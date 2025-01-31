@@ -6,6 +6,7 @@ async function SavePrompt(req, res){
         if (!userId) {
             throw new Error("User not found");
         }
+        // console.log("Received body:", req.body);
         const { prompt } = req?.body;
         await userChats.updateOne(
             { userId: userId },
@@ -27,6 +28,7 @@ async function getPrompt(userId) {
             { userId: userId }
         );
         const additional_prompt = result?.additional_prompt;
+        // console.log(additional_prompt);
         return { success: true, additional_prompt: additional_prompt };
     } catch (error) {
         console.error("Error finding prompt:", error);

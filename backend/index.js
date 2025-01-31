@@ -9,6 +9,7 @@ import UserChats from "./models/userChats.js";
 import { ClerkExpressRequireAuth } from "@clerk/clerk-sdk-node";
 import aiRoutes from "./routes/ai_routes.js";
 import promptRoutes from "./routes/prompt_routes.js";
+import { getPrompt } from "./controllers/userChat.js"; // Import getPrompt
 import dotenv from "dotenv";
 dotenv.config();
 
@@ -110,16 +111,17 @@ app.get("/api/chats", ClerkExpressRequireAuth(), async (req, res) => {
   try {
     const userChats = await UserChats.find({ userId });
 
-    // Check if the userChats array is empty
+    // Fetch the stored prompt
+    const promptData = await getPrompt(userId);
+
     if (userChats.length === 0) {
-      return res.status(200).send([]);
+      return res.status(200).send({ chats: [], additional_prompt: promptData.additional_prompt });
     }
 
-    // If there are userChats, send the chats
-    res.status(200).send(userChats[0].chats);
+    res.status(200).send({ chats: userChats[0].chats, additional_prompt: promptData.additional_prompt });
   } catch (err) {
     console.log(err);
-    res.status(500).send("Error fetching userchats!");
+    res.status(500).send("Error fetching user chats!");
   }
 });
 
