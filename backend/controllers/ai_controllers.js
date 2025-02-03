@@ -13,13 +13,10 @@ async function openai_call(req, res) {
             const result = await getPrompt(userId);
             additionalPrompt = result.additional_prompt;
         }
-        let system_prompt = {};
+        let system_prompt = { role: "system" };
         let { messages, job_description } = req.body;
-         // Validate and sanitize the `messages` array
-        if (!Array.isArray(messages)) {
-            throw new Error("Invalid messages format. Expected an array.");
-        }
-        
+
+
         if (job_description) {
             system_prompt.content = `
                 TASK: You are a Resume Specialist for Tech Professionals. Your primary responsibility is to generate the entire resume using the JD given below. The goal is to create ATS-compatible, unique, and impactful resumes that stand out in competitive job markets.
@@ -117,15 +114,22 @@ async function openai_call(req, res) {
                 NOTE: Adhere strictly to these instructions to ensure high-quality, tailored, and ATS-friendly responses in every instance.
             `;
         }
-        
+
         if (additionalPrompt !== undefined) {
             let special_instruct = "/n The following text is provided by the user and needs to be more focused. Your first priority is to follow the user's instructions below, followed by the instructions given above."
             system_prompt.content += special_instruct;
             system_prompt.content += additionalPrompt;
         }
+        // Validate and sanitize the `messages` array
+        if (!Array.isArray(messages) && !job_description) {
+            throw new Error("Invalid messages format. Expected an array.");
+        }
 
-        // Prepend the system prompt to the messages array
         messages.unshift(system_prompt);
+        if(job_description){
+            messages.push({role: "user", content: "generate resume accroding to th egiven job description."})
+        }
+// Prepend the system prompt to the messages array
 
         const response = await client.chat.completions.create({
             model: "gpt-4o", // Ensure the correct model is used
