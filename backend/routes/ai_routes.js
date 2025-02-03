@@ -5,7 +5,6 @@ import { ClerkExpressRequireAuth } from "@clerk/clerk-sdk-node";
 
 const router = Router();
 
-// router.post('/openai', ClerkExpressRequireAuth(), openai_call);
 router.post('/openai', ClerkExpressRequireAuth(), openai_call);
 
 export default router;

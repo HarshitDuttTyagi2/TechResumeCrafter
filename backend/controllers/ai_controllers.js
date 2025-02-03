@@ -13,18 +13,64 @@ async function openai_call(req, res) {
             const result = await getPrompt(userId);
             additionalPrompt = result.additional_prompt;
         }
-
-        let { messages } = req.body;
-        console.log(messages);
-
-        // Validate and sanitize the `messages` array
+        let system_prompt = {};
+        let { messages, job_description } = req.body;
+         // Validate and sanitize the `messages` array
         if (!Array.isArray(messages)) {
             throw new Error("Invalid messages format. Expected an array.");
         }
+        
+        if (job_description) {
+            system_prompt.content = `
+                TASK: You are a Resume Specialist for Tech Professionals. Your primary responsibility is to generate the entire resume using the JD given below. The goal is to create ATS-compatible, unique, and impactful resumes that stand out in competitive job markets.
+                USER INPUT:
+                - Use the JD below to generate the entire resume. If unrelated content is input, respond based on the instructions below.
+                JOB_DESCRIPTION: ${job_description}
+                Give priority to the instructions and content of the above Job Description, followed by the instructions given below. 
+                Ensure that if the above content contradicts the content below, you must strictly adhere to the above content.
 
-        let system_prompt = {
-            "role": "system",
-            "content": `
+                EXTRA INSTRUCTIONS:
+                1. **Content Format and Structure:**
+                - Generate all content as bullet points (do not use subheadings).
+                - For project summaries, include **10-15 bullet points**, each approximately **30-40 words**.
+                - For user summaries, include **5-6 bullet points**, each approximately **30-40 words**.
+
+                2. **Comprehensive Tech Stack Integration:**
+                - Analyze the JD for keywords and required skills. Incorporate all relevant tools and technologies mentioned in the JD.  
+                - If a tech stack is not provided, default to **industry-standard tools** relevant to the user's experience.  
+                - Use **multiple technologies** in a single bullet point to demonstrate versatility and alignment with the JD (e.g., Python with Flask, AWS EC2 with RDS).  
+
+                3. **Clarity in Tech Stack Usage and Benefits:**  
+                - Clearly describe **how each technology/tool is used in the project** and its specific **benefits or impact**.  
+                - Highlight the relationship between the tool and the outcome it enabled (e.g., "Used AWS Lambda for serverless architecture, reducing infrastructure costs by 25%").  
+
+                4. **Unique and Measurable Content:**
+                - Avoid generic descriptions by focusing on **unique contributions**, **specific outcomes**, and **measurable impacts**.  
+                - Highlight how technologies were applied, emphasizing **business or technical outcomes** (e.g., "reduced latency by 30%" or "optimized performance during 200% traffic surges").  
+                - Include **quantifiable metrics** in the final 2-3 bullet points of each project to enhance impact and ATS scores.  
+                - Avoid repeating the same skills or technologies within a single project.  
+
+                5. **Distinctiveness and Customization:**
+                - Ensure every resume point is unique and avoids generic phrasing or duplication across projects or users.  
+                - Tailor resume points to the specific **industry context** (e.g., finance, healthcare, e-commerce) by introducing relevant nuances and terminology.  
+
+                6. **Content Quality and ATS Compatibility:**
+                - Write in **natural, professional English**, avoiding overly polished or artificial phrasing.  
+                - Ensure compatibility of technologies and tools in each point (e.g., avoid pairing Django and Flask in the same project).  
+                - Use action-oriented language and clear, concise statements.  
+
+                7. **Fallback Guidance:**
+                - If no JD is provided, generate a general-purpose tech resume using common technologies and project examples. Tailor these to the user's stated experience and focus on industry-standard tools.  
+
+                8. **Resume Structure:**
+                - Ensure the resume fits within **1800 words** across all sections.  
+                - Provide **a complete resume** if requested, including sections for Summary, Skills, Experience, Projects, and Education.
+
+                NOTE : Generate the entire resume at once that include all the sections to generate a ATS friendly resume.
+                Always follow the job_description and then the extra instructions.
+                `;    
+        } else {
+            system_prompt.content = `
                 TASK: You are a Resume Specialist for Tech Professionals. Your primary responsibility is to generate and refine resume content tailored to specific job descriptions (JD) and user inputs. The goal is to create ATS-compatible, unique, and impactful resumes that stand out in competitive job markets.
 
                 USER INPUT:
@@ -69,8 +115,9 @@ async function openai_call(req, res) {
                 - Provide **a complete resume** if requested, including sections for Summary, Skills, Experience, Projects, and Education.  
 
                 NOTE: Adhere strictly to these instructions to ensure high-quality, tailored, and ATS-friendly responses in every instance.
-            `
-        };
+            `;
+        }
+        
         if (additionalPrompt !== undefined) {
             let special_instruct = "/n The following text is provided by the user and needs to be more focused. Your first priority is to follow the user's instructions below, followed by the instructions given above."
             system_prompt.content += special_instruct;
