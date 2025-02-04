@@ -66,7 +66,6 @@
         min-height: 40px; /* Default minimum height */
       }
       
-
       button {
         background-color: #faf4f0;
         border-radius: 50%;
@@ -84,5 +83,29 @@
         }
       }
     }
+  }
+
+  /* Elegant Scrollbar */
+  .expandingTextarea {
+    scrollbar-width: thin;
+    scrollbar-color: #bfbfbf #f0f0f0;
+  }
+
+  .expandingTextarea::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  .expandingTextarea::-webkit-scrollbar-track {
+    background: #f0f0f0;
+    border-radius: 10px;
+  }
+
+  .expandingTextarea::-webkit-scrollbar-thumb {
+    background: #bfbfbf;
+    border-radius: 10px;
+  }
+
+  .expandingTextarea::-webkit-scrollbar-thumb:hover {
+    background: #999;
   }
 }
