@@ -136,7 +136,7 @@ const ChatList = () => {
               onChange={(e) => setJobDescription(e.target.value)}
             />
             <textarea
-              placeholder="Enter special customization"
+              placeholder="Enter special customization..."
               value={special_customization}
               onChange={(e) => setspecial_customization(e.target.value)}
             />
