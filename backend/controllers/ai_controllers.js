@@ -14,10 +14,10 @@ async function openai_call(req, res) {
             additionalPrompt = result?.additional_prompt || "";
         }
 
-        let system_prompt = { role: "system" };
-        let { messages, job_description } = req.body;
+        let system_prompt = { role: "developer" };
+        let { messages, job_description, special_customization } = req.body;
         messages = Array.isArray(messages) ? messages : []; // Ensure messages is always an array
-
+       
 
         if (job_description) {
             system_prompt.content = `
@@ -122,6 +122,11 @@ async function openai_call(req, res) {
             system_prompt.content += special_instruct;
             system_prompt.content += additionalPrompt;
         }
+        if (special_customization !== undefined) {
+            let special_instruct = "/n The below text needs to be more focused while generating the entire resume. The below instructions should be strictly followed. make sure you generate the entire Resume with every sections. /n "
+            system_prompt.content += special_instruct;
+            system_prompt.content += special_customization;
+        }
         // Validate and sanitize the `messages` array
         if (!Array.isArray(messages) && !job_description) {
             throw new Error("Invalid messages format. Expected an array.");
@@ -135,9 +140,9 @@ async function openai_call(req, res) {
   }
 
   const response = await client.chat.completions.create({
-      model: "gpt-4o", 
+      model: "o3-mini", 
       messages,
-      max_tokens: 8000,
+      max_completion_tokens: 10000,
       stream: true,
   });
 
