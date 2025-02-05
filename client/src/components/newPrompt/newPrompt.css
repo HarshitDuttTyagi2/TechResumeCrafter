@@ -27,6 +27,18 @@
   color: #333;
 }
 
+.loader-container {
+  display: flex;
+  align-items: center;
+  gap: 8px; /* Adds space between loader elements */
+}
+
+.thinking-text {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+
 .newForm textarea {
   flex: 1;
   padding: 20px;
@@ -41,6 +53,24 @@
   min-height: 40px;
   max-height: 200px;
   transition: height 0.2s ease;
+
+  /* Custom scrollbar */
+  scrollbar-width: thin;
+  scrollbar-color: #b3b3b3 #faf4f0;
+}
+
+/* Webkit (Chrome, Safari) scrollbar styles */
+.newForm textarea::-webkit-scrollbar {
+  width: 4px;  /* Reduced width */
+}
+
+.newForm textarea::-webkit-scrollbar-thumb {
+  background-color: #b3b3b3;
+  border-radius: 10px;
+}
+
+.newForm textarea::-webkit-scrollbar-track {
+  background: #faf4f0;
 }
 
 .newForm button,
