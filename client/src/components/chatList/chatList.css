@@ -152,6 +152,7 @@
     height: 80%;
     max-width: 1000px;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+    overflow-y: auto;
     position: relative;
   }
 
@@ -256,8 +257,23 @@
     background-color: #218838;
   }
 
+  .loader-container {
+    display: flex;
+    align-items: center;
+  }
+  
+  .loader-content {
+    display: flex;
+    align-items: center;
+  }
+  
+  .loader-content p {
+    margin-left: 10px; /* Optional: Adds space between the loader and text */
+  }
+
   /* Elegant Scrollbar */
   .list,
+  .popup-content,
   .popup-content textarea,
   .markdown-container,
   .input-container textarea {
@@ -266,6 +282,7 @@
   }
 
   .list::-webkit-scrollbar,
+  .popup-content::-webkit-scrollbar,
   .popup-content textarea::-webkit-scrollbar,
   .response-popup-content textarea::-webkit-scrollbar,
   .input-container textarea::-webkit-scrollbar {
@@ -273,6 +290,7 @@
   }
 
   .list::-webkit-scrollbar-track,
+  .popup-content::-webkit-scrollbar-track,
   .popup-content textarea::-webkit-scrollbar-track,
   .response-popup-content textarea::-webkit-scrollbar-track,
   .input-container textarea::-webkit-scrollbar-track {
@@ -281,6 +299,7 @@
   }
 
   .list::-webkit-scrollbar-thumb,
+  .popup-content::-webkit-scrollbar-thumb,
   .popup-content textarea::-webkit-scrollbar-thumb,
   .markdown-container::-webkit-scrollbar-thumb,
   .input-container textarea::-webkit-scrollbar-thumb {
@@ -289,6 +308,7 @@
   }
 
   .list::-webkit-scrollbar-thumb:hover,
+  .popup-content::-webkit-scrollbar-thumb:hover,
   .popup-content textarea::-webkit-scrollbar-thumb:hover,
   .markdown-container::-webkit-scrollbar-thumb:hover,
   .input-container textarea::-webkit-scrollbar-thumb:hover {

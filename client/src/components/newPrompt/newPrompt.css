@@ -27,6 +27,18 @@
   color: #333;
 }
 
+.loader-container {
+  display: flex;
+  align-items: center;
+  gap: 8px; /* Adds space between loader elements */
+}
+
+.thinking-text {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+
 .newForm textarea {
   flex: 1;
   padding: 20px;

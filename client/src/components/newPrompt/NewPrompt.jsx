@@ -4,10 +4,11 @@ import Upload from "../upload/Upload";
 import { IKImage } from "imagekitio-react";
 import Markdown from "react-markdown";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useAuth, useClerk } from '@clerk/clerk-react';
-import { ScaleLoader } from "react-spinners";
+import { useAuth } from '@clerk/clerk-react';
+import { ScaleLoader, ClipLoader, SyncLoader } from "react-spinners";
+
 const NewPrompt = ({ data }) => {
-  const {getToken }= useAuth();
+  const { getToken } = useAuth();
   const history = useRef(
     data?.history?.map(({ role, parts }) => ({
       role,
@@ -15,8 +16,9 @@ const NewPrompt = ({ data }) => {
     })) || []
   );
 
-  const [question, setQuestion] = useState(""); // Holds the current user's question
+  const [question, setQuestion] = useState(""); 
   const [answer, setAnswer] = useState("");
+  const [isFetchingResponse, setIsFetchingResponse] = useState(false);
   const [img, setImg] = useState({
     isLoading: false,
     error: "",
@@ -26,15 +28,14 @@ const NewPrompt = ({ data }) => {
 
   const endRef = useRef(null);
   const formRef = useRef(null);
-  const textRef = useRef(null); // Reference to the input or textarea element
+  const textRef = useRef(null);
 
   const queryClient = useQueryClient();
 
-  // Reset textarea size when the answer is received
   useEffect(() => {
     if (textRef.current) {
-      textRef.current.style.height = "auto"; // Reset the height
-      textRef.current.style.height = `${textRef.current.scrollHeight}px`; // Adjust the height based on content
+      textRef.current.style.height = "auto";
+      textRef.current.style.height = `${textRef.current.scrollHeight}px`;
     }
   }, [answer]);
 
@@ -45,29 +46,27 @@ const NewPrompt = ({ data }) => {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
-          "Authorization":'Bearer '+token
+          "Authorization": 'Bearer ' + token
         },
         body: JSON.stringify({
           question: question.length ? question : undefined,
-          answer: answer.length ? answer: undefined,
+          answer: answer.length ? answer : undefined,
           img: img.dbData?.filePath || undefined,
         }),
       }).then((res) => res.json());
     },
     onSuccess: () => {
-      queryClient
-        .invalidateQueries({ queryKey: ["chat", data._id] })
-        .then(() => {
-          formRef.current.reset();
-          setQuestion(""); // Reset the question after successful mutation
-          setAnswer("");
-          setImg({
-            isLoading: false,
-            error: "",
-            dbData: {},
-            aiData: {},
-          });
+      queryClient.invalidateQueries({ queryKey: ["chat", data._id] }).then(() => {
+        formRef.current.reset();
+        setQuestion(""); 
+        setAnswer("");
+        setImg({
+          isLoading: false,
+          error: "",
+          dbData: {},
+          aiData: {},
         });
+      });
     },
     onError: (err) => {
       console.log(err);
@@ -75,18 +74,15 @@ const NewPrompt = ({ data }) => {
   });
 
   const add = async (text, isInitial) => {
-    
     if (!isInitial) {
       setQuestion(text);
-      history.current.push({ role: "user", content: text }); // Add user message to history
+      history.current.push({ role: "user", content: text });
     }
 
-    // Prepare the recent history: keep only the last 6 messages
-    const recentHistory = [...history.current].slice(-6);
+    setIsFetchingResponse(true); // Start loader before API request
 
     try {
       const token = await getToken();
-      // Sending history and user message to /ai/openai
       const response = await fetch(`${import.meta.env.VITE_API_URL}/ai/openai`, {
         method: "POST",
         headers: {
@@ -94,7 +90,7 @@ const NewPrompt = ({ data }) => {
           "Authorization": 'Bearer ' + token
         },
         body: JSON.stringify({
-          messages: recentHistory, // Include history
+          messages: [...history.current].slice(-6),
         }),
       });
 
@@ -105,44 +101,47 @@ const NewPrompt = ({ data }) => {
       const reader = response.body.getReader();
       const decoder = new TextDecoder("utf-8");
       let streamingAnswer = "";
-  
-      let done = false; // Initialize the done flag
+
+      let done = false;
+      let firstChunkReceived = false;
 
       while (!done) {
         const { value, done: chunkDone } = await reader.read();
-        done = chunkDone; // Update the done flag with the current chunk's status
-      
+        done = chunkDone;
+
         if (value) {
           const chunk = decoder.decode(value, { stream: true });
+          
+          if (!firstChunkReceived) {
+            setIsFetchingResponse(false); // Hide loader as soon as first chunk is received
+            firstChunkReceived = true;
+          }
+
           streamingAnswer += chunk;
-      
-          // Update the answer state with the new chunk
           setAnswer((prev) => prev + chunk);
         }
       }
 
-      // Add the final assistant's response to history
       history.current.push({ role: "assistant", content: streamingAnswer });
 
-      // Use setTimeout to delay the mutation until state is updated
       setTimeout(() => {
-        mutation.mutate(); // Trigger the mutation to save the chat
+        mutation.mutate();
       }, 500);
     } catch (err) {
       console.error("Error in addMessage:", err);
+      setIsFetchingResponse(false);
     }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-  
+
     const text = e.target.text.value;
     if (!text) return;
-  
-    e.target.text.value = ""; // Clear the textarea immediately
-    add(text, false); // Process the input
+
+    e.target.text.value = ""; 
+    add(text, false);
   };
-  
 
   const hasRun = useRef(false);
 
@@ -157,57 +156,54 @@ const NewPrompt = ({ data }) => {
 
   useEffect(() => {
     if (textRef.current) {
-      textRef.current.style.height = "auto"; // Reset height
-      textRef.current.style.height = `${textRef.current.scrollHeight}px`; // Adjust height
+      textRef.current.style.height = "auto";
+      textRef.current.style.height = `${textRef.current.scrollHeight}px`;
     }
-  }, [question]); // Re-adjust when `question` changes
-  
+  }, [question]);
 
   return (
     <>
-      {img.isLoading && (
+      {question && <div className="message user">{question}</div>}
+
+      {/* 🔥 Loader is now positioned BELOW the user's question, before AI response */}
+      {isFetchingResponse && (
         <div className="loader-container">
-          <ScaleLoader size={25} color={"black"} loading={img.isLoading} />
+          
+    <span className="thinking-text">Thinking</span>
+    <ClipLoader size={15} color={"black"} />
         </div>
       )}
-      {img.dbData?.filePath && (
-        <IKImage
-          urlEndpoint={import.meta.env.VITE_IMAGE_KIT_ENDPOINT}
-          path={img.dbData?.filePath}
-          width="380"
-          transformation={[{ width: 380 }]}
-        />
-      )}
-      {question && <div className="message user">{question}</div>}
+
       {answer && (
         <div className="message">
           <Markdown>{answer}</Markdown>
         </div>
       )}
-      <div className="endChat" ref={endRef}></div>
-      <form className="newForm" onSubmit={handleSubmit} ref={formRef}>
-  <Upload setImg={setImg} />
-  <input id="file" type="file" multiple={false} hidden />
-  <textarea
-    name="text"
-    placeholder="Ask anything..."
-    ref={textRef}
-    onKeyDown={(e) => {
-      if (e.key === "Enter" && !e.shiftKey) {
-        e.preventDefault(); // Prevent newline
-        formRef.current.requestSubmit(); // Submit the form
-      }
-    }}
-    onInput={(e) => {
-      e.target.style.height = "auto"; // Reset height
-      e.target.style.height = `${e.target.scrollHeight}px`; // Adjust height
-    }}
-  ></textarea>
-  <button>
-    <img src="/arrow.png" alt="Send" />
-  </button>
-</form>
 
+      <div className="endChat" ref={endRef}></div>
+
+      <form className="newForm" onSubmit={handleSubmit} ref={formRef}>
+        <Upload setImg={setImg} />
+        <input id="file" type="file" multiple={false} hidden />
+        <textarea
+          name="text"
+          placeholder="Ask anything..."
+          ref={textRef}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && !e.shiftKey) {
+              e.preventDefault();
+              formRef.current.requestSubmit();
+            }
+          }}
+          onInput={(e) => {
+            e.target.style.height = "auto";
+            e.target.style.height = `${e.target.scrollHeight}px`;
+          }}
+        ></textarea>
+        <button>
+          <img src="/arrow.png" alt="Send" />
+        </button>
+      </form>
     </>
   );
 };

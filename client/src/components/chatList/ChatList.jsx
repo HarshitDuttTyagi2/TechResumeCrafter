@@ -3,7 +3,7 @@ import "./chatList.css";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from '@clerk/clerk-react';
 import { useState, useEffect } from "react";
-import { ScaleLoader } from "react-spinners";
+import { ScaleLoader , ClipLoader, SyncLoader } from "react-spinners";
 import Markdown from "react-markdown";
 
 const ChatList = () => {
@@ -16,6 +16,7 @@ const ChatList = () => {
   const [generatedResponse, setGeneratedResponse] = useState("");  // Store OpenAI's response
   const [isResponsePopupVisible, setIsResponsePopupVisible] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [isStreaming, setIsStreaming] = useState(false);  // New state to track streaming status
 
   const getChats = async () => {
     const token = await getToken();
@@ -48,6 +49,8 @@ const ChatList = () => {
     setIsResponsePopupVisible(true);
     setGeneratedResponse("");  
     setIsResumePopupVisible(false);
+    setLoading(true);
+    setIsStreaming(false);  // Reset streaming flag
 
     const res = await fetch(`${import.meta.env.VITE_API_URL}/ai/openai`, {
       method: "POST",
@@ -59,19 +62,29 @@ const ChatList = () => {
     });
 
     if (res.body) {
-      const reader = res.body.getReader();
-      const decoder = new TextDecoder();
-      let done = false;
-      let result = '';
+        const reader = res.body.getReader();
+        const decoder = new TextDecoder();
+        let done = false;
+        let result = '';
+        let firstChunkReceived = false;  // Track the first chunk
 
-      while (!done) {
-        const { value, done: doneReading } = await reader.read();
-        done = doneReading;
-        result += decoder.decode(value, { stream: true });
-        setGeneratedResponse(result);
-      }
+        while (!done) {
+            const { value, done: doneReading } = await reader.read();
+            done = doneReading;
+            if (value) {
+                result += decoder.decode(value, { stream: true });
+                setGeneratedResponse(result);
+
+                if (!firstChunkReceived) {
+                    firstChunkReceived = true;
+                    setIsStreaming(true);  // Mark that streaming has started
+                    setLoading(false);     // Hide loader immediately
+                }
+            }
+        }
     }
-  };
+};
+
 
   const { isPending, error, data } = useQuery({
     queryKey: ["userChats"],
@@ -122,7 +135,7 @@ const ChatList = () => {
               value={job_description}
               onChange={(e) => setJobDescription(e.target.value)}
             />
-                        <textarea
+            <textarea
               placeholder="Enter special customization"
               value={special_customization}
               onChange={(e) => setspecial_customization(e.target.value)}
@@ -140,7 +153,7 @@ const ChatList = () => {
         {isPending ? (
           <div className="loader">
             <div style={{ display: 'flex', justifyContent: 'center' }}>
-              <ScaleLoader size={20} color={"black"} loading={isPending} />
+              <ScaleLoader size={25} color={"black"} loading={isPending} />
             </div>
           </div>
         ) : error ? (
@@ -160,8 +173,13 @@ const ChatList = () => {
             <button className="close-btn" onClick={() => setIsResponsePopupVisible(false)}>X</button>
             <h2>Response from Crafter</h2>
             <div className="markdown-container">
-  <Markdown>{generatedResponse}</Markdown>
-</div>
+              {loading && !isStreaming && (
+                <div className="loader-container">
+                  <p>Thinking</p><ClipLoader size={15} color={"black"} />
+                </div>
+              )}
+              <Markdown>{generatedResponse}</Markdown>
+            </div>
           </div>
         </div>
       )}
