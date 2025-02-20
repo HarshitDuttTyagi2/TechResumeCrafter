@@ -55,8 +55,9 @@ const ChatList = () => {
 
     // Add user message immediately
     setChatMessages(prev => [...prev, { role: 'user', content: generalChatInput }]);
-     // Create the messages array with the proper structure
-     const messages = [{ role: 'user', content: generalChatInput }];
+
+    // Get the last 6 messages plus current message
+    const messages = [...chatMessages.slice(-6), { role: 'user', content: generalChatInput }];
     
     const res = await fetch(`${import.meta.env.VITE_API_URL}/ai/general`, {
       method: "POST",
@@ -64,7 +65,7 @@ const ChatList = () => {
         "Content-Type": "application/json",
         "Authorization": 'Bearer ' + token
       },
-      body: JSON.stringify({ messages})
+      body: JSON.stringify({ messages })
     });
 
     if (res.body) {
@@ -102,8 +103,7 @@ const ChatList = () => {
     }
 
     setGeneralChatInput("");
-  };
-
+};
   const handleResumeSubmit = async () => {
     const token = await getToken();
     setIsResponsePopupVisible(true);
