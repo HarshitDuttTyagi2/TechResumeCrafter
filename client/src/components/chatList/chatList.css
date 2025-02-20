@@ -222,11 +222,12 @@
   .popup-content textarea {
     width: 100%;
     padding: 10px;
-    border: 1px solid #ccc;
+    border: 1px solid #faf4f0;
     resize: vertical;
     min-height: 250px;
     max-height: 250px;
     overflow-y: auto;
+    background-color: #faf4f0;
     border-radius: 5px;
     margin-bottom: 10px;
   }
