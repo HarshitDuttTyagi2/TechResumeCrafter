@@ -3,11 +3,13 @@ import dotenv from "dotenv";
 import { getPrompt } from "./userChat.js"
 dotenv.config();
 
+const apikey = process.env.OPENAI_API_KEY;
+const client = new OpenAI({ apiKey: apikey });
+
 async function openai_call(req, res) {
     try {
         const userId = req.auth.userId;
-        const apikey = process.env.OPENAI_API_KEY;
-        const client = new OpenAI({ apiKey: apikey });
+        
         let additionalPrompt;
         if (userId) {
             const result = await getPrompt(userId);
@@ -164,4 +166,38 @@ async function openai_call(req, res) {
 }
 }
 
-export { openai_call };
+
+async function openai_general(req, res){
+    try {
+        const  { messages } = req.body;
+        let system_prompt = { role: "developer" };
+        system_prompt.content = "Act like a chatbot and answer what the user asks.";
+        const response = await client.chat.completions.create({
+            model: "gpt-4o", 
+            messages,
+            max_tokens: 10000,
+            stream: true,
+        });
+      
+        res.setHeader("Content-Type", "text/event-stream");
+        res.setHeader("Cache-Control", "no-cache");
+        res.setHeader("Connection", "keep-alive");
+      
+        for await (const chunk of response) {
+            const content = chunk.choices?.[0]?.delta?.content;
+            if (content) {
+                res.write(content);
+            }
+        }
+      
+        res.end();
+
+    }
+     catch (error) {
+        console.error("Error in openai_call:", error.message || error);
+        res.status(500).json({ error: error.message || "Error calling OpenAI API" });
+    }
+
+}
+
+export { openai_call, openai_general };

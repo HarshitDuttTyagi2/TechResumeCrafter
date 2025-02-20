@@ -3,7 +3,7 @@ import "./chatList.css";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from '@clerk/clerk-react';
 import { useState, useEffect } from "react";
-import { ScaleLoader , ClipLoader, SyncLoader } from "react-spinners";
+import { ScaleLoader, ClipLoader, SyncLoader } from "react-spinners";
 import Markdown from "react-markdown";
 
 const ChatList = () => {
@@ -11,12 +11,15 @@ const ChatList = () => {
   const [additionalInfo, setAdditionalInfo] = useState("");
   const [isInputVisible, setIsInputVisible] = useState(false);
   const [isResumePopupVisible, setIsResumePopupVisible] = useState(false);
+  const [isGeneralChatVisible, setIsGeneralChatVisible] = useState(false);
   const [job_description, setJobDescription] = useState("");
   const [special_customization, setspecial_customization] = useState("");
-  const [generatedResponse, setGeneratedResponse] = useState("");  // Store OpenAI's response
+  const [generatedResponse, setGeneratedResponse] = useState("");
   const [isResponsePopupVisible, setIsResponsePopupVisible] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [isStreaming, setIsStreaming] = useState(false);  // New state to track streaming status
+  const [isStreaming, setIsStreaming] = useState(false);
+  const [generalChatInput, setGeneralChatInput] = useState("");
+  const [chatMessages, setChatMessages] = useState([]);
 
   const getChats = async () => {
     const token = await getToken();
@@ -40,8 +43,65 @@ const ChatList = () => {
       },
       body: JSON.stringify({ prompt: additionalInfo })
     });
-
     setIsInputVisible(false);
+  };
+
+  const handleGeneralChatSubmit = async () => {
+    if (!generalChatInput.trim()) return;
+
+    const token = await getToken();
+    setLoading(true);
+    setIsStreaming(false);
+
+    // Add user message immediately
+    setChatMessages(prev => [...prev, { role: 'user', content: generalChatInput }]);
+     // Create the messages array with the proper structure
+     const messages = [{ role: 'user', content: generalChatInput }];
+    
+    const res = await fetch(`${import.meta.env.VITE_API_URL}/ai/general`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": 'Bearer ' + token
+      },
+      body: JSON.stringify({ messages})
+    });
+
+    if (res.body) {
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let done = false;
+      let result = '';
+      let firstChunkReceived = false;
+
+      while (!done) {
+        const { value, done: doneReading } = await reader.read();
+        done = doneReading;
+        if (value) {
+          result += decoder.decode(value, { stream: true });
+          
+          if (!firstChunkReceived) {
+            firstChunkReceived = true;
+            setIsStreaming(true);
+            setLoading(false);
+            // Add assistant message when first chunk arrives
+            setChatMessages(prev => [...prev, { role: 'assistant', content: result }]);
+          } else {
+            // Update the last message (assistant's response)
+            setChatMessages(prev => {
+              const newMessages = [...prev];
+              newMessages[newMessages.length - 1] = {
+                ...newMessages[newMessages.length - 1],
+                content: result
+              };
+              return newMessages;
+            });
+          }
+        }
+      }
+    }
+
+    setGeneralChatInput("");
   };
 
   const handleResumeSubmit = async () => {
@@ -50,7 +110,7 @@ const ChatList = () => {
     setGeneratedResponse("");  
     setIsResumePopupVisible(false);
     setLoading(true);
-    setIsStreaming(false);  // Reset streaming flag
+    setIsStreaming(false);
 
     const res = await fetch(`${import.meta.env.VITE_API_URL}/ai/openai`, {
       method: "POST",
@@ -62,29 +122,28 @@ const ChatList = () => {
     });
 
     if (res.body) {
-        const reader = res.body.getReader();
-        const decoder = new TextDecoder();
-        let done = false;
-        let result = '';
-        let firstChunkReceived = false;  // Track the first chunk
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let done = false;
+      let result = '';
+      let firstChunkReceived = false;
 
-        while (!done) {
-            const { value, done: doneReading } = await reader.read();
-            done = doneReading;
-            if (value) {
-                result += decoder.decode(value, { stream: true });
-                setGeneratedResponse(result);
+      while (!done) {
+        const { value, done: doneReading } = await reader.read();
+        done = doneReading;
+        if (value) {
+          result += decoder.decode(value, { stream: true });
+          setGeneratedResponse(result);
 
-                if (!firstChunkReceived) {
-                    firstChunkReceived = true;
-                    setIsStreaming(true);  // Mark that streaming has started
-                    setLoading(false);     // Hide loader immediately
-                }
-            }
+          if (!firstChunkReceived) {
+            firstChunkReceived = true;
+            setIsStreaming(true);
+            setLoading(false);
+          }
         }
+      }
     }
-};
-
+  };
 
   const { isPending, error, data } = useQuery({
     queryKey: ["userChats"],
@@ -101,7 +160,7 @@ const ChatList = () => {
     <div className="chatList">
       <span className="title"><b>DASHBOARD</b></span>
       <Link to="/dashboard">Create a new Chat</Link>
-      <hr />
+      
 
       <div className="new-chat">
         <button onClick={() => setIsInputVisible(!isInputVisible)}>
@@ -119,11 +178,53 @@ const ChatList = () => {
         )}
       </div>
 
-      <div className="generate-resume">
+      <div className="generate-buttons">
         <button onClick={() => setIsResumePopupVisible(true)}>
           Generate Resume
         </button>
+        <button onClick={() => setIsGeneralChatVisible(true)}>
+          General Chat
+        </button>
       </div>
+
+      {isGeneralChatVisible && (
+        <div className="popup-overlay">
+          <div className="popup-content chat-popup">
+            <button className="close-btn" onClick={() => setIsGeneralChatVisible(false)}>X</button>
+            <h2>General Chat</h2>
+            <div className="chat-messages">
+              {chatMessages.map((message, index) => (
+                <div key={index} className={`message ${message.role}`}>
+                  <div className="message-content">
+                    <Markdown>{message.content}</Markdown>
+                  </div>
+                </div>
+              ))}
+              {loading && !isStreaming && (
+                <div className="loader-container">
+                  <p>Thinking</p><ClipLoader size={15} color={"black"} />
+                </div>
+              )}
+            </div>
+            <div className="chat-input">
+              <textarea
+                placeholder="Type your message..."
+                value={generalChatInput}
+                onChange={(e) => setGeneralChatInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    handleGeneralChatSubmit();
+                  }
+                }}
+              />
+              <button onClick={handleGeneralChatSubmit} disabled={loading || !generalChatInput.trim()}>
+                Send
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {isResumePopupVisible && (
         <div className="popup-overlay">
@@ -171,7 +272,7 @@ const ChatList = () => {
         <div className="response-popup-overlay">
           <div className="response-popup-content">
             <button className="close-btn" onClick={() => setIsResponsePopupVisible(false)}>X</button>
-            <h2>Response from Crafter</h2>
+            <h2>Generating Resume</h2>
             <div className="markdown-container">
               {loading && !isStreaming && (
                 <div className="loader-container">

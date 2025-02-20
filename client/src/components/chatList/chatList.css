@@ -33,34 +33,6 @@
     }
   }
 
-  .upgrade {
-    margin-top: auto;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    font-size: 12px;
-
-    img {
-      width: 24px;
-      height: 24px;
-    }
-
-    .texts {
-      display: flex;
-      flex-direction: column;
-
-      span {
-        &:first-child {
-          font-weight: 600;
-        }
-
-        &:last-child {
-          color: #888;
-        }
-      }
-    }
-  }
-
   /* New Chat Section */
   .new-chat {
     margin-bottom: 10px;
@@ -71,12 +43,21 @@
     color: black;
     padding: 8px 12px;
     border: none;
+    margin-top: 10px;
+    margin-bottom: -10px;
     cursor: pointer;
     border-radius: 5px;
   }
 
   .new-chat button:hover {
     background-color: #F6EEDF;
+  }
+
+  .input-container {
+    margin-top: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
   }
 
   .input-container textarea {
@@ -90,13 +71,6 @@
     overflow-y: auto;
   }
   
-  .input-container input {
-    padding: 6px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    flex-grow: 1;
-  }
-
   .input-container button {
     background-color: #28a745;
     color: white;
@@ -104,30 +78,108 @@
     border: none;
     cursor: pointer;
     border-radius: 5px;
+    align-self: flex-end;
   }
 
   .input-container button:hover {
     background-color: #218838;
   }
 
-  /* Resume Generation Button */
-  .generate-resume {
-    margin-top: 10px;
+  /* Generate Buttons Section */
+  .generate-buttons {
     display: flex;
-    justify-content: flex-start;
+    flex-direction: column;
+    gap: 10px;
+    margin: 10px 0;
   }
 
-  .generate-resume button {
+  .generate-buttons button {
     background-color: #28a745;
     color: white;
-    padding: 8px 12px;
+    padding: 5px 12px;
     border: none;
+    gap: 10px;
     cursor: pointer;
+    border-radius: 5px;
+    width: 148px;     /* Fixed width */
+    height: 28px;     /* Fixed height */
+}
+
+  .generate-buttons button:hover {
+    background-color: #218838;
+  }
+
+  /* Chat Interface */
+  .chat-popup {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .chat-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    background: #ece7de;
+    border-radius: 5px;
+    min-height: 400px;
+  }
+
+  .message {
+    max-width: 80%;
+    padding: 10px 15px;
+    border-radius: 10px;
+    margin-bottom: 10px;
+  }
+
+  .message.user {
+    align-self: flex-end;
+    background-color: #818E6A;
+    color: white;
+  }
+
+  .message.assistant {
+    align-self: flex-start;
+    background-color: #ece7de;
+    color: black;
+  }
+
+  .chat-input {
+    display: flex;
+    gap: 10px;
+    padding: 15px;
+    background: #faf4f0;
     border-radius: 5px;
   }
 
-  .generate-resume button:hover {
-    background-color: #218838;
+  .chat-input textarea {
+    flex: 1;
+    min-height: 40px;
+    max-height: 120px;
+    padding: 10px;
+    border: 1px solid #faf4f0;
+    background-color:#faf4f0 ;
+    border-radius: 5px;
+    resize: vertical;
+  }
+
+  .chat-input button {
+    align-self: flex-end;
+    padding: 10px 20px;
+    background-color: #28a745;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    height: fit-content;
+  }
+
+  .chat-input button:disabled {
+    background-color: #28a745;
+    cursor: not-allowed;
   }
 
   /* Pop-up Section */
@@ -172,10 +224,23 @@
     padding: 10px;
     border: 1px solid #ccc;
     resize: vertical;
-    min-height: 300px;
-    max-height: 300px;
+    min-height: 250px;
+    max-height: 250px;
     overflow-y: auto;
     border-radius: 5px;
+    margin-bottom: 10px;
+  }
+
+  .popup-content .chat-input textarea {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    resize: vertical;
+    min-height: 80px;
+    max-height: 175px;
+    overflow-y: auto;
+    border-radius: 5px;
+    margin-bottom: 10px;
   }
 
   .popup-content button {
@@ -192,6 +257,7 @@
     background-color: #218838;
   }
 
+  /* Response Popup */
   .response-popup-overlay {
     position: fixed;
     top: 0;
@@ -216,59 +282,52 @@
     position: relative;
   }
   
-  .response-popup-content h2 {
-    font-size: 18px;
-    margin-bottom: 10px;
-  }
-  
   .markdown-container {
     flex-grow: 1;
     background: #ECE7DE;
     padding: 10px;
     border-radius: 5px;
-    overflow-y: auto;  /* Enables scrolling inside the markdown content */
-    max-height: 70vh;  /* Limits the height and prevents overflow */
-    white-space: pre-wrap;  /* Ensures line breaks are respected */
+    overflow-y: auto;
+    max-height: 70vh;
+    white-space: pre-wrap;
     word-wrap: break-word;
   }
-  
-  .response-popup-content .close-btn {
-    background-color: transparent;
-    border: none;
-    font-size: 16px;
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    cursor: pointer;
-    font-weight: bold;
-  }
-  
-  .response-popup-content button {
-    margin-top: 10px;
-    background-color: #28a745;
-    color: white;
-    padding: 8px 12px;
-    border: none;
-    cursor: pointer;
-    border-radius: 5px;
-  }
-  
-  .response-popup-content button:hover {
-    background-color: #218838;
-  }
 
+  /* Loader */
   .loader-container {
     display: flex;
     align-items: center;
+    gap: 10px;
+    padding: 10px;
   }
-  
-  .loader-content {
+
+  /* Upgrade Section */
+  .upgrade {
+    margin-top: auto;
     display: flex;
     align-items: center;
-  }
-  
-  .loader-content p {
-    margin-left: 10px; /* Optional: Adds space between the loader and text */
+    gap: 10px;
+    font-size: 12px;
+
+    img {
+      width: 24px;
+      height: 24px;
+    }
+
+    .texts {
+      display: flex;
+      flex-direction: column;
+
+      span {
+        &:first-child {
+          font-weight: 600;
+        }
+
+        &:last-child {
+          color: #888;
+        }
+      }
+    }
   }
 
   /* Elegant Scrollbar */
@@ -276,42 +335,28 @@
   .popup-content,
   .popup-content textarea,
   .markdown-container,
-  .input-container textarea {
+  .input-container textarea,
+  .chat-messages,
+  .chat-input textarea {
     scrollbar-width: thin;
     scrollbar-color: #bfbfbf transparent;
-  }
 
-  .list::-webkit-scrollbar,
-  .popup-content::-webkit-scrollbar,
-  .popup-content textarea::-webkit-scrollbar,
-  .response-popup-content textarea::-webkit-scrollbar,
-  .input-container textarea::-webkit-scrollbar {
-    width: 8px;
-  }
+    &::-webkit-scrollbar {
+      width: 8px;
+    }
 
-  .list::-webkit-scrollbar-track,
-  .popup-content::-webkit-scrollbar-track,
-  .popup-content textarea::-webkit-scrollbar-track,
-  .response-popup-content textarea::-webkit-scrollbar-track,
-  .input-container textarea::-webkit-scrollbar-track {
-    background: #f0f0f0;
-    border-radius: 10px;
-  }
+    &::-webkit-scrollbar-track {
+      background: #f0f0f0;
+      border-radius: 10px;
+    }
 
-  .list::-webkit-scrollbar-thumb,
-  .popup-content::-webkit-scrollbar-thumb,
-  .popup-content textarea::-webkit-scrollbar-thumb,
-  .markdown-container::-webkit-scrollbar-thumb,
-  .input-container textarea::-webkit-scrollbar-thumb {
-    background: #bfbfbf;
-    border-radius: 10px;
-  }
-
-  .list::-webkit-scrollbar-thumb:hover,
-  .popup-content::-webkit-scrollbar-thumb:hover,
-  .popup-content textarea::-webkit-scrollbar-thumb:hover,
-  .markdown-container::-webkit-scrollbar-thumb:hover,
-  .input-container textarea::-webkit-scrollbar-thumb:hover {
-    background: #999;
+    &::-webkit-scrollbar-thumb {
+      background: #bfbfbf;
+      border-radius: 10px;
+      
+      &:hover {
+        background: #999;
+      }
+    }
   }
 }
