@@ -246,8 +246,8 @@
 
   .popup-content button {
     margin-top: 10px;
-    background-color: #28a745;
-    color: white;
+    background-color: transparent;
+    color: black;
     padding: 8px 12px;
     border: none;
     cursor: pointer;
@@ -255,7 +255,7 @@
   }
 
   .popup-content button:hover {
-    background-color: #218838;
+    background-color: #faf4f0;
   }
 
   /* Response Popup */
