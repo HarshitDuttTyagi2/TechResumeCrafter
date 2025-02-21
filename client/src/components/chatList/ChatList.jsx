@@ -183,7 +183,7 @@ const ChatList = () => {
           Generate Resume
         </button>
         <button onClick={() => setIsGeneralChatVisible(true)}>
-          General Chat
+          Temporary Chat
         </button>
       </div>
 
@@ -191,7 +191,7 @@ const ChatList = () => {
         <div className="popup-overlay">
           <div className="popup-content chat-popup">
             <button className="close-btn" onClick={() => setIsGeneralChatVisible(false)}>X</button>
-            <h2>General Chat</h2>
+            <h2>Temporary Chat</h2>
             <div className="chat-messages">
               {chatMessages.map((message, index) => (
                 <div key={index} className={`message ${message.role}`}>
