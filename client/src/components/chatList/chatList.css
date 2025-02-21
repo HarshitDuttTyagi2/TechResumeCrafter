@@ -246,7 +246,17 @@
 
   .popup-content button {
     margin-top: 10px;
-    background-color: transparent;
+    background-color: #28a745;
+    color: white;
+    padding: 8px 12px;
+    border: none;
+    cursor: pointer;
+    border-radius: 5px;
+  }
+
+  .popup-content .close-btn {
+    margin-top: 10px;
+    background-color: #ECE7DE;
     color: black;
     padding: 8px 12px;
     border: none;
@@ -254,8 +264,12 @@
     border-radius: 5px;
   }
 
-  .popup-content button:hover {
+  .popup-content .close-btn:hover {
     background-color: #faf4f0;
+  }
+
+  .popup-content button:hover {
+    background-color: #218838;
   }
 
   /* Response Popup */
