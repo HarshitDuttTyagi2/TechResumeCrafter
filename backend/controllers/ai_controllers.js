@@ -142,9 +142,10 @@ async function openai_call(req, res) {
   }
 
   const response = await client.chat.completions.create({
-      model: "o3-mini", 
+      model: "gpt-4o", 
       messages,
       max_completion_tokens: 10000,
+      temperature: 0.7,
       stream: true,
   });
 
